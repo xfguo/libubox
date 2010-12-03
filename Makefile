@@ -8,10 +8,23 @@ INCLUDE_DIR=$(PREFIX)/include/libubox
 LIBDIR=$(PREFIX)/lib
 CPPFLAGS=
 
-all: libubox.so
+OS=$(shell uname)
+FILES=blob.c blobmsg.c hash.c uhtbl.c
+ifeq ($(OS),Linux)
+  FILES += ucix.c usock.c uloop.c unl.c
+  LIBS += -luci $(LIBNL)
+  LDFLAGS_SHARED=-shared -Wl,-soname,$@
+  SHLIB_EXT=so
+endif
+ifeq ($(OS),Darwin)
+  LDFLAGS_SHARED=-dynamiclib
+  SHLIB_EXT=dylib
+endif
 
-libubox.so: ucix.c blob.c blobmsg.c hash.c uhtbl.c usock.c uloop.c unl.c
-	$(CC) $(CFLAGS) $(CPPFLAGS) -o $@ -shared -Wl,-soname,libubox.so $^ $(LDFLAGS) -luci $(LIBNL)
+all: libubox.$(SHLIB_EXT)
+
+libubox.$(SHLIB_EXT): $(FILES)
+	$(CC) $(CFLAGS) $(CPPFLAGS) -o $@ $^ $(LDFLAGS) $(LIBS) $(LDFLAGS_SHARED)
 
 install-headers:
 	mkdir -p $(INCLUDE_DIR)
@@ -19,10 +32,10 @@ install-headers:
 
 install-lib:
 	mkdir -p $(LIBDIR)
-	cp libubox.so $(LIBDIR)/
+	cp libubox.$(SHLIB_EXT) $(LIBDIR)/
 
 install: install-lib install-headers
 
 clean:
-	rm -f *.so
+	rm -f *.$(SHLIB_EXT)
 
