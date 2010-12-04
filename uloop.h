@@ -22,6 +22,13 @@
 
 #include <sys/time.h>
 #include <stdbool.h>
+#include <stdint.h>
+
+#if defined(__APPLE__) || defined(__FreeBSD__)
+#define USE_KQUEUE
+#else
+#define USE_EPOLL
+#endif
 
 struct uloop_fd;
 struct uloop_timeout;
@@ -40,6 +47,9 @@ struct uloop_fd
 	bool eof;
 	bool error;
 	bool registered;
+#ifdef USE_KQUEUE
+	uint8_t kqflags;
+#endif
 };
 
 struct uloop_timeout

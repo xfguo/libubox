@@ -21,7 +21,15 @@
 
 #include <sys/time.h>
 #include <sys/types.h>
+
+#include "uloop.h"
+
+#ifdef USE_KQUEUE
+#include <sys/event.h>
+#endif
+#ifdef USE_EPOLL
 #include <sys/epoll.h>
+#endif
 
 #include <unistd.h>
 #include <stdio.h>
@@ -33,7 +41,118 @@
 #include <signal.h>
 #include <stdbool.h>
 
-#include "uloop.h"
+#ifndef ARRAY_SIZE
+#define ARRAY_SIZE(arr) (sizeof(arr) / sizeof((arr)[0]))
+#endif
+#define ULOOP_MAX_EVENTS 10
+
+struct uloop_timeout *first_timeout;
+static int poll_fd;
+static bool cancel;
+
+#ifdef USE_KQUEUE
+
+int uloop_init(void)
+{
+	poll_fd = kqueue();
+	if (poll_fd < 0)
+		return -1;
+
+	return 0;
+}
+
+
+static uint16_t get_flags(unsigned int flags, unsigned int mask)
+{
+	uint16_t kflags = 0;
+
+	if (!(flags & mask))
+		return EV_DELETE;
+
+	kflags = EV_ADD;
+	if (flags & ULOOP_EDGE_TRIGGER)
+		kflags |= EV_CLEAR;
+
+	return kflags;
+}
+
+static int register_poll(struct uloop_fd *fd, unsigned int flags)
+{
+	struct timespec timeout = { 0, 0 };
+	struct kevent ev[2];
+	unsigned int changed;
+	int nev = 0;
+
+	changed = fd->kqflags ^ flags;
+	if (changed & ULOOP_EDGE_TRIGGER)
+		changed |= flags;
+
+	if (changed & ULOOP_READ) {
+		uint16_t kflags = get_flags(flags, ULOOP_READ);
+		EV_SET(&ev[nev++], fd->fd, EVFILT_READ, kflags, 0, 0, fd);
+	}
+
+	if (changed & ULOOP_WRITE) {
+		uint16_t kflags = get_flags(flags, ULOOP_WRITE);
+		EV_SET(&ev[nev++], fd->fd, EVFILT_READ, kflags, 0, 0, fd);
+	}
+
+	if (nev && (kevent(poll_fd, ev, nev, NULL, 0, &timeout) == -1))
+		return -1;
+
+	fd->kqflags = flags;
+	return 0;
+}
+
+int uloop_fd_delete(struct uloop_fd *sock)
+{
+	sock->registered = false;
+	return register_poll(sock, 0);
+}
+
+static void uloop_run_events(int timeout)
+{
+	struct kevent events[ULOOP_MAX_EVENTS];
+	struct timespec ts;
+	int nfds, n;
+
+	if (timeout < 0) {
+		ts.tv_sec = 0;
+		ts.tv_nsec = 0;
+	} else {
+		ts.tv_sec = timeout / 1000;
+		ts.tv_nsec = timeout * 1000000;
+	}
+
+	nfds = kevent(poll_fd, NULL, 0, events, ARRAY_SIZE(events), &ts);
+	for(n = 0; n < nfds; ++n)
+	{
+		struct uloop_fd *u = events[n].udata;
+		unsigned int ev = 0;
+
+		if(events[n].flags & EV_ERROR) {
+			u->error = true;
+			uloop_fd_delete(u);
+		}
+
+		if(events[n].filter == EVFILT_READ)
+			ev |= ULOOP_READ;
+		else if (events[n].filter == EVFILT_WRITE)
+			ev |= ULOOP_WRITE;
+
+		if(events[n].flags & EV_EOF)
+			u->eof = true;
+		else if (!ev)
+			continue;
+
+		if(u->cb)
+			u->cb(u, ev);
+	}
+}
+
+#endif
+
+#ifdef USE_EPOLL
 
 /**
  * FIXME: uClibc < 0.9.30.3 does not define EPOLLRDHUP for Linux >= 2.6.17
@@ -42,26 +161,20 @@
 #define EPOLLRDHUP 0x2000
 #endif
 
-#ifndef ARRAY_SIZE
-#define ARRAY_SIZE(arr) (sizeof(arr) / sizeof((arr)[0]))
-#endif
+int uloop_init(void)
+{
+	poll_fd = epoll_create(32);
+	if (poll_fd < 0)
+		return -1;
 
-struct uloop_timeout *first_timeout;
-static int epoll_fd;
-static bool cancel;
+	fcntl(poll_fd, F_SETFD, fcntl(poll_fd, F_GETFD) | FD_CLOEXEC);
+	return 0;
+}
 
-int uloop_fd_add(struct uloop_fd *sock, unsigned int flags)
+static int register_poll(struct uloop_fd *fd, unsigned int flags)
 {
 	struct epoll_event ev;
-	int op = sock->registered ? EPOLL_CTL_MOD : EPOLL_CTL_ADD;
-	unsigned int fl;
-	int ret;
-
-	if (!sock->registered) {
-		fl = fcntl(sock->fd, F_GETFL, 0);
-		fl |= O_NONBLOCK;
-		fcntl(sock->fd, F_SETFL, fl);
-	}
+	int op = fd->registered ? EPOLL_CTL_MOD : EPOLL_CTL_ADD;
 
 	memset(&ev, 0, sizeof(struct epoll_event));
 
@@ -74,10 +187,65 @@ int uloop_fd_add(struct uloop_fd *sock, unsigned int flags)
 	if (flags & ULOOP_EDGE_TRIGGER)
 		ev.events |= EPOLLET;
 
-	ev.data.fd = sock->fd;
-	ev.data.ptr = sock;
+	ev.data.fd = fd->fd;
+	ev.data.ptr = fd;
 
-	ret = epoll_ctl(epoll_fd, op, sock->fd, &ev);
+	return epoll_ctl(poll_fd, op, fd->fd, &ev);
+}
+
+int uloop_fd_delete(struct uloop_fd *sock)
+{
+	sock->registered = false;
+	return epoll_ctl(poll_fd, EPOLL_CTL_DEL, sock->fd, 0);
+}
+
+static void uloop_run_events(int timeout)
+{
+	struct epoll_event events[ULOOP_MAX_EVENTS];
+	int nfds, n;
+
+	nfds = epoll_wait(poll_fd, events, ARRAY_SIZE(events), timeout);
+	for(n = 0; n < nfds; ++n)
+	{
+		struct uloop_fd *u = events[n].data.ptr;
+		unsigned int ev = 0;
+
+		if(events[n].events & EPOLLERR) {
+			u->error = true;
+			uloop_fd_delete(u);
+		}
+
+		if(!(events[n].events & (EPOLLRDHUP|EPOLLIN|EPOLLOUT|EPOLLERR)))
+			continue;
+
+		if(events[n].events & EPOLLRDHUP)
+			u->eof = true;
+
+		if(events[n].events & EPOLLIN)
+			ev |= ULOOP_READ;
+
+		if(events[n].events & EPOLLOUT)
+			ev |= ULOOP_WRITE;
+
+		if(u->cb)
+			u->cb(u, ev);
+	}
+}
+
+#endif
+
+int uloop_fd_add(struct uloop_fd *sock, unsigned int flags)
+{
+	unsigned int fl;
+	int ret;
+
+	if (!sock->registered) {
+		fl = fcntl(sock->fd, F_GETFL, 0);
+		fl |= O_NONBLOCK;
+		fcntl(sock->fd, F_SETFL, fl);
+	}
+
+	ret = register_poll(sock, flags);
 	if (ret < 0)
 		goto out;
 
@@ -86,12 +254,6 @@ int uloop_fd_add(struct uloop_fd *sock, unsigned int flags)
 
 out:
 	return ret;
-}
-
-int uloop_fd_delete(struct uloop_fd *sock)
-{
-	sock->registered = false;
-	return epoll_ctl(epoll_fd, EPOLL_CTL_DEL, sock->fd, 0);
 }
 
 static int tv_diff(struct timeval *t1, struct timeval *t2)
@@ -214,59 +376,20 @@ void uloop_end(void)
 	cancel = true;
 }
 
-int uloop_init(void)
-{
-	epoll_fd = epoll_create(32);
-	if (epoll_fd < 0)
-		return -1;
-
-	fcntl(epoll_fd, F_SETFD, fcntl(epoll_fd, F_GETFD) | FD_CLOEXEC);
-	return 0;
-}
-
 void uloop_run(void)
 {
-	struct epoll_event events[10];
 	struct timeval tv;
-	int timeout;
-	int nfds, n;
 
 	uloop_setup_signals();
 	while(!cancel)
 	{
 		gettimeofday(&tv, NULL);
 		uloop_process_timeouts(&tv);
-		timeout = uloop_get_next_timeout(&tv);
-		nfds = epoll_wait(epoll_fd, events, ARRAY_SIZE(events), timeout);
-		for(n = 0; n < nfds; ++n)
-		{
-			struct uloop_fd *u = events[n].data.ptr;
-			unsigned int ev = 0;
-
-			if(events[n].events & EPOLLERR) {
-				u->error = true;
-				uloop_fd_delete(u);
-			}
-
-			if(!(events[n].events & (EPOLLRDHUP|EPOLLIN|EPOLLOUT|EPOLLERR)))
-				continue;
-
-			if(events[n].events & EPOLLRDHUP)
-				u->eof = true;
-
-			if(events[n].events & EPOLLIN)
-				ev |= ULOOP_READ;
-
-			if(events[n].events & EPOLLOUT)
-				ev |= ULOOP_WRITE;
-
-			if(u->cb)
-				u->cb(u, ev);
-		}
+		uloop_run_events(uloop_get_next_timeout(&tv));
 	}
 }
 
 void uloop_done(void)
 {
-	close(epoll_fd);
+	close(poll_fd);
 }
