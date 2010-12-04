@@ -9,9 +9,9 @@ LIBDIR=$(PREFIX)/lib
 CPPFLAGS=
 
 OS=$(shell uname)
-FILES=blob.c blobmsg.c hash.c uhtbl.c
+FILES=blob.c blobmsg.c hash.c uhtbl.c usock.c
 ifeq ($(OS),Linux)
-  FILES += usock.c uloop.c unl.c
+  FILES += uloop.c unl.c
   LIBS += $(LIBNL)
   LDFLAGS_SHARED=-shared -Wl,-soname,$@
   SHLIB_EXT=so
