@@ -107,7 +107,7 @@ struct blob_attr_info {
 	unsigned int type;
 	unsigned int minlen;
 	unsigned int maxlen;
-	bool (*validate)(struct blob_attr_info *, struct blob_attr *);
+	bool (*validate)(const struct blob_attr_info *, struct blob_attr *);
 };
 
 struct blob_buf {
@@ -219,7 +219,7 @@ extern struct blob_attr *blob_new(struct blob_buf *buf, int id, int payload);
 extern void *blob_nest_start(struct blob_buf *buf, int id);
 extern void blob_nest_end(struct blob_buf *buf, void *cookie);
 extern struct blob_attr *blob_put(struct blob_buf *buf, int id, const void *ptr, int len);
-extern int blob_parse(struct blob_attr *attr, struct blob_attr **data, struct blob_attr_info *info, int max);
+extern int blob_parse(struct blob_attr *attr, struct blob_attr **data, const struct blob_attr_info *info, int max);
 
 static inline struct blob_attr *
 blob_put_string(struct blob_buf *buf, int id, const char *str)

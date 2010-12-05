@@ -132,7 +132,7 @@ static const int blob_type_minlen[BLOB_ATTR_LAST] = {
 };
 
 int
-blob_parse(struct blob_attr *attr, struct blob_attr **data, struct blob_attr_info *info, int max)
+blob_parse(struct blob_attr *attr, struct blob_attr **data, const struct blob_attr_info *info, int max)
 {
 	struct blob_attr *pos;
 	int found = 0;
