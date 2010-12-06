@@ -39,6 +39,7 @@ typedef void (*uloop_timeout_handler)(struct uloop_timeout *t);
 #define ULOOP_READ		(1 << 0)
 #define ULOOP_WRITE		(1 << 1)
 #define ULOOP_EDGE_TRIGGER	(1 << 2)
+#define ULOOP_BLOCKING		(1 << 3)
 
 struct uloop_fd
 {

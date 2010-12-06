@@ -236,7 +236,7 @@ int uloop_fd_add(struct uloop_fd *sock, unsigned int flags)
 	unsigned int fl;
 	int ret;
 
-	if (!sock->registered) {
+	if (!sock->registered && !(flags & ULOOP_BLOCKING)) {
 		fl = fcntl(sock->fd, F_GETFL, 0);
 		fl |= O_NONBLOCK;
 		fcntl(sock->fd, F_SETFL, fl);
