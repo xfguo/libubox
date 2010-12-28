@@ -9,7 +9,7 @@ LIBDIR=$(PREFIX)/lib
 CPPFLAGS=
 
 OS=$(shell uname)
-FILES=blob.c blobmsg.c hash.c uhtbl.c usock.c uloop.c
+FILES=blob.c blobmsg.c hash.c uhtbl.c usock.c uloop.c avl.c
 ifeq ($(OS),Linux)
   FILES += unl.c
   LIBS += $(LIBNL)
