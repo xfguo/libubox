@@ -111,7 +111,7 @@ avl_init(struct avl_tree *tree, avl_tree_comp comp, bool allow_dups, void *ptr)
  * @param pointer to elemen, NULL if no fitting one was found
  */
 void *
-__avl_find_element(struct avl_tree *tree, const void *key, size_t offset, enum avl_find_mode mode) {
+__avl_find_element(const struct avl_tree *tree, const void *key, size_t offset, enum avl_find_mode mode) {
   void *node = NULL;
 
   switch (mode) {
@@ -136,7 +136,7 @@ __avl_find_element(struct avl_tree *tree, const void *key, size_t offset, enum a
  *    this key exists.
  */
 struct avl_node *
-avl_find(struct avl_tree *tree, const void *key)
+avl_find(const struct avl_tree *tree, const void *key)
 {
   struct avl_node *node;
   int diff;
@@ -158,7 +158,7 @@ avl_find(struct avl_tree *tree, const void *key)
  *    key less or equal specified key exists.
  */
 struct avl_node *
-avl_find_lessequal(struct avl_tree *tree, const void *key) {
+avl_find_lessequal(const struct avl_tree *tree, const void *key) {
   struct avl_node *node, *next;
   int diff;
 
@@ -200,7 +200,7 @@ avl_find_lessequal(struct avl_tree *tree, const void *key) {
  *    key greater or equal specified key exists.
  */
 struct avl_node *
-avl_find_greaterequal(struct avl_tree *tree, const void *key) {
+avl_find_greaterequal(const struct avl_tree *tree, const void *key) {
   struct avl_node *node, *next;
   int diff;
 
