@@ -26,7 +26,7 @@ bool blobmsg_check_attr(const struct blob_attr *attr, bool name)
 	if (!hdr->namelen && name)
 		return false;
 
-	if (hdr->namelen > blob_len(attr))
+	if (hdr->namelen > blob_len(attr) - sizeof(struct blobmsg_hdr))
 		return false;
 
 	if (hdr->name[hdr->namelen] != 0)
