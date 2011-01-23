@@ -15,6 +15,26 @@
 
 #include "blobmsg.h"
 
+bool blobmsg_check_attr(const struct blob_attr *attr, bool name)
+{
+	const struct blobmsg_hdr *hdr;
+
+	if (blob_len(attr) < sizeof(struct blobmsg_hdr))
+		return false;
+
+	hdr = (void *) attr->data;
+	if (!hdr->namelen && name)
+		return false;
+
+	if (hdr->namelen > blob_len(attr))
+		return false;
+
+	if (hdr->name[hdr->namelen] != 0)
+		return false;
+
+	return true;
+}
+
 int blobmsg_parse(const struct blobmsg_policy *policy, int policy_len,
                   struct blob_attr **tb, void *data, int len)
 {
@@ -45,13 +65,7 @@ int blobmsg_parse(const struct blobmsg_policy *policy, int policy_len,
 			if (hdr->namelen != pslen[i])
 				continue;
 
-			if (!hdr->namelen)
-				return -1;
-
-			if (sizeof(*attr) + blobmsg_hdrlen(hdr->namelen) > blob_pad_len(attr))
-				return -1;
-
-			if (hdr->name[hdr->namelen] != 0)
+			if (!blobmsg_check_attr(attr, true))
 				return -1;
 
 			if (tb[i])

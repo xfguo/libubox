@@ -141,7 +141,7 @@ blob_id(struct blob_attr *attr)
  * blob_len: returns the length of the attribute's payload
  */
 static inline unsigned int
-blob_len(struct blob_attr *attr)
+blob_len(const struct blob_attr *attr)
 {
 	return (be32_to_cpu(attr->id_len) & BLOB_ATTR_LEN_MASK) - sizeof(struct blob_attr);
 }
