@@ -15,6 +15,161 @@
 
 #include "blobmsg.h"
 
+struct strbuf {
+	int len;
+	int pos;
+	char *buf;
+};
+
+static bool blobmsg_puts(struct strbuf *s, char *c, int len)
+{
+	if (len <= 0)
+		return true;
+
+	if (s->pos + len >= s->len) {
+		s->len += 16;
+		s->buf = realloc(s->buf, s->len);
+		if (!s->buf)
+			return false;
+	}
+	memcpy(s->buf + s->pos, c, len);
+	s->pos += len;
+	return true;
+}
+
+static void blobmsg_format_string(struct strbuf *s, char *str)
+{
+	char *p, *last = str, *end = str + strlen(str);
+	char buf[8] = "\\u00";
+
+	blobmsg_puts(s, "\"", 1);
+	for (p = str; *p; p++) {
+		char escape = '\0';
+		int len;
+
+		switch(*p) {
+		case '\b':
+			escape = 'b';
+			break;
+		case '\n':
+			escape = 'n';
+			break;
+		case '\t':
+			escape = 't';
+			break;
+		case '\r':
+			escape = 'r';
+			break;
+		case '"':
+		case '\\':
+		case '/':
+			escape = *p;
+			break;
+		default:
+			if (*p < ' ')
+				escape = 'u';
+			break;
+		}
+
+		if (!escape)
+			continue;
+
+		if (p > last)
+			blobmsg_puts(s, last, p - last);
+		last = p + 1;
+		buf[1] = escape;
+
+		if (escape == 'u') {
+			sprintf(buf + 4, "%02x", (unsigned char) *p);
+			len = 4;
+		} else {
+			len = 2;
+		}
+		blobmsg_puts(s, buf, len);
+	}
+
+	blobmsg_puts(s, last, end - last);
+	blobmsg_puts(s, "\"", 1);
+}
+
+static void blobmsg_format_json_list(struct strbuf *s, struct blob_attr *attr, int len, bool array);
+
+static void blobmsg_format_element(struct strbuf *s, struct blob_attr *attr, bool array)
+{
+	char buf[32];
+	void *data;
+	int len;
+
+	if (array) {
+		data = blob_data(attr);
+		len  = blob_len(attr);
+	} else {
+		blobmsg_format_string(s, blobmsg_name(attr));
+		blobmsg_puts(s, ":", 1);
+		data = blobmsg_data(attr);
+		len = blobmsg_data_len(attr);
+	}
+
+	switch(blob_id(attr)) {
+	case BLOBMSG_TYPE_INT8:
+		sprintf(buf, "%d", *(uint8_t *)data);
+		break;
+	case BLOBMSG_TYPE_INT16:
+		sprintf(buf, "%d", *(uint16_t *)data);
+		break;
+	case BLOBMSG_TYPE_INT32:
+		sprintf(buf, "%d", *(uint32_t *)data);
+		break;
+	case BLOBMSG_TYPE_INT64:
+		sprintf(buf, "%lld", *(uint64_t *)data);
+		break;
+	case BLOBMSG_TYPE_STRING:
+		blobmsg_puts(s, data, strlen(data));
+		return;
+	case BLOBMSG_TYPE_ARRAY:
+		blobmsg_format_json_list(s, data, len, true);
+		return;
+	case BLOBMSG_TYPE_TABLE:
+		blobmsg_format_json_list(s, data, len, false);
+		return;
+	}
+	blobmsg_puts(s, buf, strlen(buf));
+}
+
+static void blobmsg_format_json_list(struct strbuf *s, struct blob_attr *attr, int len, bool array)
+{
+	struct blob_attr *pos;
+	bool first = true;
+	int rem = len;
+
+	blobmsg_puts(s, (array ? "[ " : "{ "), 2);
+	__blob_for_each_attr(pos, attr, rem) {
+		if (!first)
+			blobmsg_puts(s, ", ", 2);
+
+		blobmsg_format_element(s, pos, array);
+		first = false;
+	}
+	blobmsg_puts(s, (array ? " ]" : " }"), 2);
+}
+
+char *blobmsg_format_json(struct blob_attr *attr)
+{
+	struct strbuf s;
+
+	s.len = blob_len(attr);
+	s.buf = malloc(s.len);
+	s.pos = 0;
+
+	blobmsg_format_element(&s, attr, false);
+
+	if (!s.len)
+		return NULL;
+
+	s.buf = realloc(s.buf, s.pos + 1);
+	return s.buf;
+}
+
 bool blobmsg_check_attr(const struct blob_attr *attr, bool name)
 {
 	const struct blobmsg_hdr *hdr;
