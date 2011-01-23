@@ -49,6 +49,12 @@ static inline int blobmsg_hdrlen(int namelen)
 	return BLOBMSG_PADDING(sizeof(struct blobmsg_hdr) + namelen + 1);
 }
 
+static inline void *blobmsg_name(struct blob_attr *attr)
+{
+	struct blobmsg_hdr *hdr = blob_data(attr);
+	return &hdr->name;
+}
+
 static inline void *blobmsg_data(struct blob_attr *attr)
 {
 	struct blobmsg_hdr *hdr = blob_data(attr);
