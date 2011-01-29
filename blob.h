@@ -115,7 +115,6 @@ struct blob_buf {
 	bool (*grow)(struct blob_buf *buf, int minlen);
 	int buflen;
 	void *buf;
-	void *priv;
 };
 
 /*
