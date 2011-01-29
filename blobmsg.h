@@ -35,7 +35,7 @@ enum blobmsg_type {
 };
 
 struct blobmsg_hdr {
-	uint8_t namelen;
+	uint16_t namelen;
 	uint8_t name[];
 } __packed;
 
@@ -58,7 +58,7 @@ static inline void *blobmsg_name(struct blob_attr *attr)
 static inline void *blobmsg_data(struct blob_attr *attr)
 {
 	struct blobmsg_hdr *hdr = blob_data(attr);
-	return &hdr->name[blobmsg_hdrlen(hdr->namelen) - 1];
+	return (char *) hdr + blobmsg_hdrlen(hdr->namelen);
 }
 
 static inline int blobmsg_data_len(struct blob_attr *attr)

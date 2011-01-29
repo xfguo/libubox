@@ -94,18 +94,20 @@ static void blobmsg_format_string(struct strbuf *s, char *str)
 
 static void blobmsg_format_json_list(struct strbuf *s, struct blob_attr *attr, int len, bool array);
 
-static void blobmsg_format_element(struct strbuf *s, struct blob_attr *attr, bool array)
+static void blobmsg_format_element(struct strbuf *s, struct blob_attr *attr, bool array, bool head)
 {
 	char buf[32];
 	void *data;
 	int len;
 
-	if (array) {
-		data = blob_data(attr);
-		len  = blob_len(attr);
-	} else {
+	if (!array) {
 		blobmsg_format_string(s, blobmsg_name(attr));
 		blobmsg_puts(s, ":", 1);
+	}
+	if (head) {
+		data = blob_data(attr);
+		len = blob_len(attr);
+	} else {
 		data = blobmsg_data(attr);
 		len = blobmsg_data_len(attr);
 	}
@@ -147,7 +149,7 @@ static void blobmsg_format_json_list(struct strbuf *s, struct blob_attr *attr, i
 		if (!first)
 			blobmsg_puts(s, ", ", 2);
 
-		blobmsg_format_element(s, pos, array);
+		blobmsg_format_element(s, pos, array, false);
 		first = false;
 	}
 	blobmsg_puts(s, (array ? " ]" : " }"), 2);
@@ -161,7 +163,7 @@ char *blobmsg_format_json(struct blob_attr *attr)
 	s.buf = malloc(s.len);
 	s.pos = 0;
 
-	blobmsg_format_element(&s, attr, false);
+	blobmsg_format_element(&s, attr, true, true);
 
 	if (!s.len)
 		return NULL;
@@ -244,14 +246,8 @@ blobmsg_new(struct blob_buf *buf, int type, const char *name, int payload_len, v
 	struct blobmsg_hdr *hdr;
 	int attrlen, namelen;
 
-	if (blob_id(buf->head) == BLOBMSG_TYPE_ARRAY && !name) {
-		attr = blob_new(buf, type, payload_len);
-		*data = blob_data(attr);
-		return attr;
-	}
-
-	if (blob_id(buf->head) != BLOBMSG_TYPE_TABLE || !name)
-		return NULL;
+	if (!name)
+		name = "";
 
 	namelen = strlen(name);
 	attrlen = blobmsg_hdrlen(namelen) + payload_len;
@@ -282,17 +278,13 @@ blobmsg_open_nested(struct blob_buf *buf, const char *name, bool array)
 	unsigned long offset = attr_to_offset(buf, buf->head);
 	void *data;
 
-	if (blob_id(head) == BLOBMSG_TYPE_ARRAY && !name)
-		return blob_nest_start(buf, type);
+	if (!name)
+		name = "";
 
-	if (blob_id(head) == BLOBMSG_TYPE_TABLE && name) {
-		head = blobmsg_new(buf, type, name, 0, &data);
-		blob_set_raw_len(buf->head, blob_pad_len(buf->head) - blobmsg_hdrlen(strlen(name)));
-		buf->head = head;
-		return (void *)offset;
-	}
-
-	return NULL;
+	head = blobmsg_new(buf, type, name, 0, &data);
+	blob_set_raw_len(buf->head, blob_pad_len(buf->head) - blobmsg_hdrlen(strlen(name)));
+	buf->head = head;
+	return (void *)offset;
 }
 
 int
