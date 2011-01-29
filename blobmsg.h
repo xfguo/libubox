@@ -141,4 +141,10 @@ static inline int blobmsg_buf_init(struct blob_buf *buf)
 
 char *blobmsg_format_json(struct blob_attr *attr);
 
+#define blobmsg_for_each_attr(pos, attr, rem) \
+	for (rem = blobmsg_data_len(attr), pos = blobmsg_data(attr); \
+		 (blob_pad_len(pos) <= rem) && \
+		 (blob_pad_len(pos) >= sizeof(struct blob_attr)); \
+		 rem -= blob_pad_len(pos), pos = blob_next(pos))
+
 #endif
