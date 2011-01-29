@@ -121,9 +121,6 @@ static void
 fill_message(struct blob_buf *buf)
 {
 	void *tbl;
-#if 0
-	int i;
-#endif
 
 	blobmsg_add_string(buf, "message", "Hello, world!");
 
@@ -137,15 +134,6 @@ fill_message(struct blob_buf *buf)
 	blobmsg_add_u32(buf, "hello", 1);
 	blobmsg_add_string(buf, "world", "2");
 	blobmsg_close_table(buf, tbl);
-
-#if 0
-	for (i = 0; i < buf->buflen; i++) {
-		if (i % 0x10 == 0)
-			fprintf(stderr, "\n");
-		fprintf(stderr, "%02x ", ((uint8_t *) buf->buf)[i]);
-	}
-	fprintf(stderr, "\n");
-#endif
 }
 
 int main(int argc, char **argv)
