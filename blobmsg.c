@@ -155,7 +155,7 @@ static void blobmsg_format_json_list(struct strbuf *s, struct blob_attr *attr, i
 	blobmsg_puts(s, (array ? " ]" : " }"), 2);
 }
 
-char *blobmsg_format_json(struct blob_attr *attr)
+char *blobmsg_format_json(struct blob_attr *attr, bool named)
 {
 	struct strbuf s;
 
@@ -163,7 +163,7 @@ char *blobmsg_format_json(struct blob_attr *attr)
 	s.buf = malloc(s.len);
 	s.pos = 0;
 
-	blobmsg_format_element(&s, attr, true, true);
+	blobmsg_format_json_list(&s, blob_data(attr), blob_len(attr), !named);
 
 	if (!s.len)
 		return NULL;

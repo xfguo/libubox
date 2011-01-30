@@ -139,7 +139,7 @@ static inline int blobmsg_buf_init(struct blob_buf *buf)
 	return blob_buf_init(buf, BLOBMSG_TYPE_TABLE);
 }
 
-char *blobmsg_format_json(struct blob_attr *attr);
+char *blobmsg_format_json(struct blob_attr *attr, bool named);
 
 #define blobmsg_for_each_attr(pos, attr, rem) \
 	for (rem = blobmsg_data_len(attr), pos = blobmsg_data(attr); \

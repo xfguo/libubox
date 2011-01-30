@@ -128,7 +128,7 @@ int main(int argc, char **argv)
 	blobmsg_buf_init(&buf);
 	fill_message(&buf);
 	dump_message(&buf);
-	fprintf(stderr, "json: %s\n", blobmsg_format_json(buf.head));
+	fprintf(stderr, "json: %s\n", blobmsg_format_json(buf.head, false), true);
 
 	if (buf.buf)
 		free(buf.buf);
