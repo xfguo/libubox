@@ -49,10 +49,10 @@ static inline int blobmsg_hdrlen(int namelen)
 	return BLOBMSG_PADDING(sizeof(struct blobmsg_hdr) + namelen + 1);
 }
 
-static inline void *blobmsg_name(struct blob_attr *attr)
+static inline char *blobmsg_name(struct blob_attr *attr)
 {
 	struct blobmsg_hdr *hdr = blob_data(attr);
-	return &hdr->name;
+	return (char *) hdr->name;
 }
 
 static inline void *blobmsg_data(struct blob_attr *attr)
@@ -139,7 +139,7 @@ static inline int blobmsg_buf_init(struct blob_buf *buf)
 	return blob_buf_init(buf, BLOBMSG_TYPE_TABLE);
 }
 
-char *blobmsg_format_json(struct blob_attr *attr, bool named);
+char *blobmsg_format_json(struct blob_attr *attr, bool list);
 
 #define blobmsg_for_each_attr(pos, attr, rem) \
 	for (rem = blobmsg_data_len(attr), pos = blobmsg_data(attr); \

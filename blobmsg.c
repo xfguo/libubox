@@ -100,7 +100,7 @@ static void blobmsg_format_element(struct strbuf *s, struct blob_attr *attr, boo
 	void *data;
 	int len;
 
-	if (!array) {
+	if (!array && blobmsg_name(attr)[0]) {
 		blobmsg_format_string(s, blobmsg_name(attr));
 		blobmsg_puts(s, ":", 1);
 	}
@@ -155,7 +155,7 @@ static void blobmsg_format_json_list(struct strbuf *s, struct blob_attr *attr, i
 	blobmsg_puts(s, (array ? " ]" : " }"), 2);
 }
 
-char *blobmsg_format_json(struct blob_attr *attr, bool named)
+char *blobmsg_format_json(struct blob_attr *attr, bool list)
 {
 	struct strbuf s;
 
@@ -163,7 +163,10 @@ char *blobmsg_format_json(struct blob_attr *attr, bool named)
 	s.buf = malloc(s.len);
 	s.pos = 0;
 
-	blobmsg_format_json_list(&s, blob_data(attr), blob_len(attr), !named);
+	if (list)
+		blobmsg_format_json_list(&s, blob_data(attr), blob_len(attr), false);
+	else
+		blobmsg_format_element(&s, attr, false, false);
 
 	if (!s.len)
 		return NULL;
