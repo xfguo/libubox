@@ -147,7 +147,7 @@ blob_check_type(const void *ptr, int len, int type)
 			return false;
 	}
 
-	if (type == BLOB_ATTR_STRING && data[len] != 0)
+	if (type == BLOB_ATTR_STRING && data[len - 1] != 0)
 		return false;
 
 	return true;
