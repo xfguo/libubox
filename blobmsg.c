@@ -126,7 +126,7 @@ static void blobmsg_format_element(struct strbuf *s, struct blob_attr *attr, boo
 		sprintf(buf, "%lld", *(uint64_t *)data);
 		break;
 	case BLOBMSG_TYPE_STRING:
-		blobmsg_puts(s, data, strlen(data));
+		blobmsg_format_string(s, data);
 		return;
 	case BLOBMSG_TYPE_ARRAY:
 		blobmsg_format_json_list(s, data, len, true);
