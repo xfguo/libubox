@@ -121,16 +121,16 @@ struct blob_buf {
  * blob_data: returns the data pointer for an attribute
  */
 static inline void *
-blob_data(struct blob_attr *attr)
+blob_data(const struct blob_attr *attr)
 {
-	return attr->data;
+	return (void *) attr->data;
 }
 
 /*
  * blob_id: returns the id of an attribute
  */
 static inline unsigned int
-blob_id(struct blob_attr *attr)
+blob_id(const struct blob_attr *attr)
 {
 	int id = (be32_to_cpu(attr->id_len) & BLOB_ATTR_ID_MASK) >> BLOB_ATTR_ID_SHIFT;
 	return id;
@@ -149,7 +149,7 @@ blob_len(const struct blob_attr *attr)
  * blob_pad_len: returns the complete length of an attribute (including the header)
  */
 static inline unsigned int
-blob_raw_len(struct blob_attr *attr)
+blob_raw_len(const struct blob_attr *attr)
 {
 	return blob_len(attr) + sizeof(struct blob_attr);
 }
@@ -158,7 +158,7 @@ blob_raw_len(struct blob_attr *attr)
  * blob_pad_len: returns the padded length of an attribute (including the header)
  */
 static inline unsigned int
-blob_pad_len(struct blob_attr *attr)
+blob_pad_len(const struct blob_attr *attr)
 {
 	int len = blob_raw_len(attr);
 	len = (len + BLOB_ATTR_ALIGN - 1) & ~(BLOB_ATTR_ALIGN - 1);
@@ -175,40 +175,40 @@ blob_set_raw_len(struct blob_attr *attr, unsigned int len)
 }
 
 static inline uint8_t
-blob_get_int8(struct blob_attr *attr)
+blob_get_int8(const struct blob_attr *attr)
 {
 	return *((uint8_t *) attr->data);
 }
 
 static inline uint16_t
-blob_get_int16(struct blob_attr *attr)
+blob_get_int16(const struct blob_attr *attr)
 {
 	uint16_t *tmp = (uint16_t*)attr->data;
 	return be16_to_cpu(*tmp);
 }
 
 static inline uint32_t
-blob_get_int32(struct blob_attr *attr)
+blob_get_int32(const struct blob_attr *attr)
 {
 	uint32_t *tmp = (uint32_t*)attr->data;
 	return be32_to_cpu(*tmp);
 }
 
 static inline uint64_t
-blob_get_int64(struct blob_attr *attr)
+blob_get_int64(const struct blob_attr *attr)
 {
 	uint64_t *tmp = (uint64_t*)attr->data;
 	return be64_to_cpu(*tmp);
 }
 
 static inline const char *
-blob_get_string(struct blob_attr *attr)
+blob_get_string(const struct blob_attr *attr)
 {
 	return attr->data;
 }
 
 static inline struct blob_attr *
-blob_next(struct blob_attr *attr)
+blob_next(const struct blob_attr *attr)
 {
 	return (struct blob_attr *) ((char *) attr + blob_pad_len(attr));
 }
@@ -218,7 +218,7 @@ extern struct blob_attr *blob_new(struct blob_buf *buf, int id, int payload);
 extern void *blob_nest_start(struct blob_buf *buf, int id);
 extern void blob_nest_end(struct blob_buf *buf, void *cookie);
 extern struct blob_attr *blob_put(struct blob_buf *buf, int id, const void *ptr, int len);
-extern bool blob_check_type(void *ptr, int len, int type);
+extern bool blob_check_type(const void *ptr, int len, int type);
 extern int blob_parse(struct blob_attr *attr, struct blob_attr **data, const struct blob_attr_info *info, int max);
 
 static inline struct blob_attr *

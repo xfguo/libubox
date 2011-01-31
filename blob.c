@@ -132,9 +132,9 @@ static const int blob_type_minlen[BLOB_ATTR_LAST] = {
 };
 
 bool
-blob_check_type(void *ptr, int len, int type)
+blob_check_type(const void *ptr, int len, int type)
 {
-	char *data = ptr;
+	const char *data = ptr;
 
 	if (type >= BLOB_ATTR_LAST)
 		return false;
