@@ -142,6 +142,7 @@ blob_parse(struct blob_attr *attr, struct blob_attr **data, const struct blob_at
 	blob_for_each_attr(pos, attr, rem) {
 		int id = blob_id(pos);
 		int len = blob_len(pos);
+		char *pdata;
 
 		if (id >= max)
 			continue;
@@ -157,6 +158,10 @@ blob_parse(struct blob_attr *attr, struct blob_attr **data, const struct blob_at
 						continue;
 				}
 			}
+
+			pdata = blob_data(pos);
+			if (type == BLOB_ATTR_STRING && pdata[len] != 0)
+				continue;
 
 			if (info[id].minlen && len < info[id].minlen)
 				continue;
