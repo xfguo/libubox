@@ -4,15 +4,8 @@ PROJECT(ubox C)
 ADD_DEFINITIONS(-Os -Wall -Werror --std=gnu99 -g3)
 
 SET(SOURCES avl.c blob.c blobmsg.c hash.c uhtbl.c uloop.c)
-IF("${CMAKE_SYSTEM}" MATCHES "Linux")
-  SET(SOURCES ${SOURCES} unl.c)
-ENDIF("${CMAKE_SYSTEM}" MATCHES "Linux")
 
 ADD_LIBRARY(ubox SHARED ${SOURCES})
-
-IF("${CMAKE_SYSTEM}" MATCHES "Linux")
-  TARGET_LINK_LIBRARIES(ubox nl-tiny)
-ENDIF("${CMAKE_SYSTEM}" MATCHES "Linux")
 
 SET(CMAKE_INSTALL_PREFIX /usr)
 
