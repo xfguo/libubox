@@ -21,7 +21,7 @@ struct strbuf {
 	char *buf;
 };
 
-static bool blobmsg_puts(struct strbuf *s, char *c, int len)
+static bool blobmsg_puts(struct strbuf *s, const char *c, int len)
 {
 	if (len <= 0)
 		return true;
@@ -37,9 +37,9 @@ static bool blobmsg_puts(struct strbuf *s, char *c, int len)
 	return true;
 }
 
-static void blobmsg_format_string(struct strbuf *s, char *str)
+static void blobmsg_format_string(struct strbuf *s, const char *str)
 {
-	char *p, *last = str, *end = str + strlen(str);
+	const char *p, *last = str, *end = str + strlen(str);
 	char buf[8] = "\\u00";
 
 	blobmsg_puts(s, "\"", 1);
@@ -175,9 +175,19 @@ char *blobmsg_format_json(struct blob_attr *attr, bool list)
 	return s.buf;
 }
 
+static const int blob_type[__BLOBMSG_TYPE_LAST] = {
+	[BLOBMSG_TYPE_INT8] = BLOB_ATTR_INT8,
+	[BLOBMSG_TYPE_INT16] = BLOB_ATTR_INT16,
+	[BLOBMSG_TYPE_INT32] = BLOB_ATTR_INT32,
+	[BLOBMSG_TYPE_INT64] = BLOB_ATTR_INT64,
+	[BLOBMSG_TYPE_STRING] = BLOB_ATTR_STRING,
+};
+
 bool blobmsg_check_attr(const struct blob_attr *attr, bool name)
 {
 	const struct blobmsg_hdr *hdr;
+	const char *data;
+	int id, len;
 
 	if (blob_len(attr) < sizeof(struct blobmsg_hdr))
 		return false;
@@ -192,7 +202,17 @@ bool blobmsg_check_attr(const struct blob_attr *attr, bool name)
 	if (hdr->name[hdr->namelen] != 0)
 		return false;
 
-	return true;
+	id = blob_id(attr);
+	len = blobmsg_data_len(attr);
+	data = blobmsg_data(attr);
+
+	if (!id || id > BLOBMSG_TYPE_LAST)
+		return false;
+
+	if (!blob_type[id])
+		return true;
+
+	return blob_check_type(data, len, blob_type[id]);
 }
 
 int blobmsg_parse(const struct blobmsg_policy *policy, int policy_len,

@@ -49,19 +49,19 @@ static inline int blobmsg_hdrlen(int namelen)
 	return BLOBMSG_PADDING(sizeof(struct blobmsg_hdr) + namelen + 1);
 }
 
-static inline char *blobmsg_name(struct blob_attr *attr)
+static inline const char *blobmsg_name(const struct blob_attr *attr)
 {
 	struct blobmsg_hdr *hdr = blob_data(attr);
-	return (char *) hdr->name;
+	return (const char *) hdr->name;
 }
 
-static inline void *blobmsg_data(struct blob_attr *attr)
+static inline void *blobmsg_data(const struct blob_attr *attr)
 {
 	struct blobmsg_hdr *hdr = blob_data(attr);
 	return (char *) hdr + blobmsg_hdrlen(hdr->namelen);
 }
 
-static inline int blobmsg_data_len(struct blob_attr *attr)
+static inline int blobmsg_data_len(const struct blob_attr *attr)
 {
 	uint8_t *start, *end;
 
