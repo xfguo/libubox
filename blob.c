@@ -131,6 +131,28 @@ static const int blob_type_minlen[BLOB_ATTR_LAST] = {
 	[BLOB_ATTR_INT64] = sizeof(uint64_t),
 };
 
+bool
+blob_check_type(void *ptr, int len, int type)
+{
+	char *data = ptr;
+
+	if (type >= BLOB_ATTR_LAST)
+		return false;
+
+	if (type >= BLOB_ATTR_INT8 && type <= BLOB_ATTR_INT64) {
+		if (len != blob_type_minlen[type])
+			return false;
+	} else {
+		if (len < blob_type_minlen[type])
+			return false;
+	}
+
+	if (type == BLOB_ATTR_STRING && data[len] != 0)
+		return false;
+
+	return true;
+}
+
 int
 blob_parse(struct blob_attr *attr, struct blob_attr **data, const struct blob_attr_info *info, int max)
 {
@@ -142,26 +164,17 @@ blob_parse(struct blob_attr *attr, struct blob_attr **data, const struct blob_at
 	blob_for_each_attr(pos, attr, rem) {
 		int id = blob_id(pos);
 		int len = blob_len(pos);
-		char *pdata;
 
 		if (id >= max)
 			continue;
 
 		if (info) {
 			int type = info[id].type;
-			if (type < BLOB_ATTR_LAST) {
-				if (type >= BLOB_ATTR_INT8 && type <= BLOB_ATTR_INT64) {
-					if (len != blob_type_minlen[type])
-						continue;
-				} else {
-					if (len < blob_type_minlen[type])
-						continue;
-				}
-			}
 
-			pdata = blob_data(pos);
-			if (type == BLOB_ATTR_STRING && pdata[len] != 0)
-				continue;
+			if (type < BLOB_ATTR_LAST) {
+				if (!blob_check_type(blob_data(pos), len, type))
+					continue;
+			}
 
 			if (info[id].minlen && len < info[id].minlen)
 				continue;
