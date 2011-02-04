@@ -310,6 +310,37 @@ blobmsg_open_nested(struct blob_buf *buf, const char *name, bool array)
 	return (void *)offset;
 }
 
+void *
+blobmsg_alloc_string_buffer(struct blob_buf *buf, const char *name, int maxlen)
+{
+	struct blob_attr *attr;
+	void *data_dest;
+
+	attr = blobmsg_new(buf, BLOBMSG_TYPE_STRING, name, maxlen, &data_dest);
+	if (!attr)
+		return NULL;
+
+	data_dest = blobmsg_data(attr);
+	blob_set_raw_len(buf->head, blob_pad_len(buf->head) - blob_raw_len(attr));
+	blob_set_raw_len(attr, blob_raw_len(attr) - maxlen);
+
+	return data_dest;
+}
+
+void
+blobmsg_add_string_buffer(struct blob_buf *buf)
+{
+	struct blob_attr *attr;
+	int len, attrlen;
+
+	attr = blob_next(buf->head);
+	len = strlen(blobmsg_data(attr)) + 1;
+
+	attrlen = blob_raw_len(attr) + len;
+	blob_set_raw_len(attr, attrlen);
+	blob_set_raw_len(buf->head, blob_raw_len(buf->head) + attrlen);
+}
+
 int
 blobmsg_add_field(struct blob_buf *buf, int type, const char *name,
                   const void *data, int len)

@@ -139,6 +139,9 @@ static inline int blobmsg_buf_init(struct blob_buf *buf)
 	return blob_buf_init(buf, BLOBMSG_TYPE_TABLE);
 }
 
+void *blobmsg_alloc_string_buffer(struct blob_buf *buf, const char *name, int maxlen);
+void blobmsg_add_string_buffer(struct blob_buf *buf);
+
 char *blobmsg_format_json(struct blob_attr *attr, bool list);
 
 #define blobmsg_for_each_attr(pos, attr, rem) \
