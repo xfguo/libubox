@@ -139,6 +139,26 @@ static inline int blobmsg_buf_init(struct blob_buf *buf)
 	return blob_buf_init(buf, BLOBMSG_TYPE_TABLE);
 }
 
+static inline uint8_t blobmsg_get_u8(struct blob_attr *attr)
+{
+	return *(uint8_t *) blobmsg_data(attr);
+}
+
+static inline uint16_t blobmsg_get_u16(struct blob_attr *attr)
+{
+	return *(uint16_t *) blobmsg_data(attr);
+}
+
+static inline uint32_t blobmsg_get_u32(struct blob_attr *attr)
+{
+	return *(uint32_t *) blobmsg_data(attr);
+}
+
+static inline uint64_t blobmsg_get_u64(struct blob_attr *attr)
+{
+	return *(uint64_t *) blobmsg_data(attr);
+}
+
 void *blobmsg_alloc_string_buffer(struct blob_buf *buf, const char *name, int maxlen);
 void blobmsg_add_string_buffer(struct blob_buf *buf);
 
