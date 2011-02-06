@@ -8,7 +8,7 @@ IF(APPLE)
   LINK_DIRECTORIES(/opt/local/lib)
 ENDIF()
 
-SET(SOURCES avl.c blob.c blobmsg.c hash.c uloop.c usock.c)
+SET(SOURCES avl.c blob.c blobmsg.c uloop.c usock.c)
 
 ADD_LIBRARY(ubox SHARED ${SOURCES})
 ADD_LIBRARY(blobmsg_json SHARED blobmsg_json.c)
