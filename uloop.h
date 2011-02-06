@@ -62,6 +62,8 @@ struct uloop_timeout
 	bool pending;
 };
 
+extern bool uloop_cancelled;
+
 int uloop_fd_add(struct uloop_fd *sock, unsigned int flags);
 int uloop_fd_delete(struct uloop_fd *sock);
 

@@ -48,7 +48,7 @@
 
 struct uloop_timeout *first_timeout;
 static int poll_fd;
-static bool cancel;
+bool uloop_cancelled = false;
 
 #ifdef USE_KQUEUE
 
@@ -327,7 +327,7 @@ int uloop_timeout_cancel(struct uloop_timeout *timeout)
 
 static void uloop_handle_sigint(int signo)
 {
-	cancel = true;
+	uloop_cancelled = true;
 }
 
 static void uloop_setup_signals(void)
@@ -370,7 +370,7 @@ static void uloop_process_timeouts(struct timeval *tv)
 
 void uloop_end(void)
 {
-	cancel = true;
+	uloop_cancelled = true;
 }
 
 void uloop_run(void)
@@ -378,7 +378,7 @@ void uloop_run(void)
 	struct timeval tv;
 
 	uloop_setup_signals();
-	while(!cancel)
+	while(!uloop_cancelled)
 	{
 		gettimeofday(&tv, NULL);
 		uloop_process_timeouts(&tv);
