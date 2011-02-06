@@ -94,7 +94,7 @@ static int register_poll(struct uloop_fd *fd, unsigned int flags)
 
 	if (changed & ULOOP_WRITE) {
 		uint16_t kflags = get_flags(flags, ULOOP_WRITE);
-		EV_SET(&ev[nev++], fd->fd, EVFILT_READ, kflags, 0, 0, fd);
+		EV_SET(&ev[nev++], fd->fd, EVFILT_WRITE, kflags, 0, 0, fd);
 	}
 
 	if (nev && (kevent(poll_fd, ev, nev, NULL, 0, &timeout) == -1))
