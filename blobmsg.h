@@ -162,7 +162,18 @@ static inline uint64_t blobmsg_get_u64(struct blob_attr *attr)
 void *blobmsg_alloc_string_buffer(struct blob_buf *buf, const char *name, int maxlen);
 void blobmsg_add_string_buffer(struct blob_buf *buf);
 
-char *blobmsg_format_json(struct blob_attr *attr, bool list);
+/* blobmsg to json formatting */
+
+typedef const char *(*blobmsg_json_format_t)(void *priv, struct blob_attr *attr);
+
+char *blobmsg_format_json_with_cb(struct blob_attr *attr, bool list,
+				  blobmsg_json_format_t cb, void *priv);
+
+static inline char *blobmsg_format_json(struct blob_attr *attr, bool list)
+{
+	return blobmsg_format_json_with_cb(attr, list, NULL, NULL);
+}
+
 
 #define blobmsg_for_each_attr(pos, attr, rem) \
 	for (rem = blobmsg_data_len(attr), pos = blobmsg_data(attr); \

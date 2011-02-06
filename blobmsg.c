@@ -19,6 +19,9 @@ struct strbuf {
 	int len;
 	int pos;
 	char *buf;
+
+	blobmsg_json_format_t custom_format;
+	void *priv;
 };
 
 static bool blobmsg_puts(struct strbuf *s, const char *c, int len)
@@ -96,6 +99,7 @@ static void blobmsg_format_json_list(struct strbuf *s, struct blob_attr *attr, i
 
 static void blobmsg_format_element(struct strbuf *s, struct blob_attr *attr, bool array, bool head)
 {
+	const char *data_str;
 	char buf[32];
 	void *data;
 	int len;
@@ -110,8 +114,15 @@ static void blobmsg_format_element(struct strbuf *s, struct blob_attr *attr, boo
 	} else {
 		data = blobmsg_data(attr);
 		len = blobmsg_data_len(attr);
+
+		if (s->custom_format) {
+			data_str = s->custom_format(s->priv, attr);
+			if (data_str)
+				goto out;
+		}
 	}
 
+	data_str = buf;
 	switch(blob_id(attr)) {
 	case BLOBMSG_TYPE_INT8:
 		sprintf(buf, "%d", *(uint8_t *)data);
@@ -135,7 +146,9 @@ static void blobmsg_format_element(struct strbuf *s, struct blob_attr *attr, boo
 		blobmsg_format_json_list(s, data, len, false);
 		return;
 	}
-	blobmsg_puts(s, buf, strlen(buf));
+
+out:
+	blobmsg_puts(s, data_str, strlen(data_str));
 }
 
 static void blobmsg_format_json_list(struct strbuf *s, struct blob_attr *attr, int len, bool array)
@@ -155,13 +168,15 @@ static void blobmsg_format_json_list(struct strbuf *s, struct blob_attr *attr, i
 	blobmsg_puts(s, (array ? " ]" : " }"), 2);
 }
 
-char *blobmsg_format_json(struct blob_attr *attr, bool list)
+char *blobmsg_format_json_with_cb(struct blob_attr *attr, bool list, blobmsg_json_format_t cb, void *priv)
 {
 	struct strbuf s;
 
 	s.len = blob_len(attr);
 	s.buf = malloc(s.len);
 	s.pos = 0;
+	s.custom_format = cb;
+	s.priv = priv;
 
 	if (list)
 		blobmsg_format_json_list(&s, blob_data(attr), blob_len(attr), false);
