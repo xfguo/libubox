@@ -175,27 +175,27 @@ blob_set_raw_len(struct blob_attr *attr, unsigned int len)
 }
 
 static inline uint8_t
-blob_get_int8(const struct blob_attr *attr)
+blob_get_u8(const struct blob_attr *attr)
 {
 	return *((uint8_t *) attr->data);
 }
 
 static inline uint16_t
-blob_get_int16(const struct blob_attr *attr)
+blob_get_u16(const struct blob_attr *attr)
 {
 	uint16_t *tmp = (uint16_t*)attr->data;
 	return be16_to_cpu(*tmp);
 }
 
 static inline uint32_t
-blob_get_int32(const struct blob_attr *attr)
+blob_get_u32(const struct blob_attr *attr)
 {
 	uint32_t *tmp = (uint32_t*)attr->data;
 	return be32_to_cpu(*tmp);
 }
 
 static inline uint64_t
-blob_get_int64(const struct blob_attr *attr)
+blob_get_u64(const struct blob_attr *attr)
 {
 	uint64_t *tmp = (uint64_t*)attr->data;
 	return be64_to_cpu(*tmp);
