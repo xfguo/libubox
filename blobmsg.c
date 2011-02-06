@@ -321,7 +321,7 @@ blobmsg_alloc_string_buffer(struct blob_buf *buf, const char *name, int maxlen)
 		return NULL;
 
 	data_dest = blobmsg_data(attr);
-	blob_set_raw_len(buf->head, blob_pad_len(buf->head) - blob_raw_len(attr));
+	blob_set_raw_len(buf->head, blob_pad_len(buf->head) - blob_pad_len(attr));
 	blob_set_raw_len(attr, blob_raw_len(attr) - maxlen);
 
 	return data_dest;
@@ -338,7 +338,7 @@ blobmsg_add_string_buffer(struct blob_buf *buf)
 
 	attrlen = blob_raw_len(attr) + len;
 	blob_set_raw_len(attr, attrlen);
-	blob_set_raw_len(buf->head, blob_raw_len(buf->head) + attrlen);
+	blob_set_raw_len(buf->head, blob_raw_len(buf->head) + blob_pad_len(attr));
 }
 
 int
