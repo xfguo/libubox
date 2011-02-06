@@ -103,32 +103,6 @@ avl_init(struct avl_tree *tree, avl_tree_comp comp, bool allow_dups, void *ptr)
 }
 
 /**
- * Internal function to support returning the element from a avl tree query
- * @param tree pointer to avl tree
- * @param key pointer to key
- * @param offset offset of node inside the embedded struct
- * @param mode mode of lookup operation (less equal, equal or greater equal)
- * @param pointer to elemen, NULL if no fitting one was found
- */
-void *
-__avl_find_element(const struct avl_tree *tree, const void *key, size_t offset, enum avl_find_mode mode) {
-  void *node = NULL;
-
-  switch (mode) {
-    case AVL_FIND_EQUAL:
-      node = avl_find(tree, key);
-      break;
-    case AVL_FIND_LESSEQUAL:
-      node = avl_find_lessequal(tree, key);
-      break;
-    case AVL_FIND_GREATEREQUAL:
-      node = avl_find_greaterequal(tree, key);
-      break;
-  }
-  return node == NULL ? NULL : (((char *)node) - offset);
-}
-
-/**
  * Finds a node in an avl-tree with a certain key
  * @param tree pointer to avl-tree
  * @param key pointer to key

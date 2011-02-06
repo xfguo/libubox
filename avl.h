@@ -160,8 +160,6 @@ struct avl_node *EXPORT(avl_find_greaterequal)(const struct avl_tree *tree, cons
 struct avl_node *EXPORT(avl_find_lessequal)(const struct avl_tree *tree, const void *key);
 int EXPORT(avl_insert)(struct avl_tree *, struct avl_node *);
 void EXPORT(avl_delete)(struct avl_tree *, struct avl_node *);
-void *EXPORT(__avl_find_element)(const struct avl_tree *tree, const void *key,
-    size_t offset, enum avl_find_mode mode);
 
 /**
  * @param tree pointer to avl-tree
@@ -190,6 +188,32 @@ avl_is_last(struct avl_tree *tree, struct avl_node *node) {
 static inline bool
 avl_is_empty(struct avl_tree *tree) {
   return tree->count == 0;
+}
+
+/**
+ * Internal function to support returning the element from a avl tree query
+ * @param tree pointer to avl tree
+ * @param key pointer to key
+ * @param offset offset of node inside the embedded struct
+ * @param mode mode of lookup operation (less equal, equal or greater equal)
+ * @param pointer to elemen, NULL if no fitting one was found
+ */
+static inline void *
+__avl_find_element(const struct avl_tree *tree, const void *key, size_t offset, enum avl_find_mode mode) {
+  void *node = NULL;
+
+  switch (mode) {
+    case AVL_FIND_EQUAL:
+      node = avl_find(tree, key);
+      break;
+    case AVL_FIND_LESSEQUAL:
+      node = avl_find_lessequal(tree, key);
+      break;
+    case AVL_FIND_GREATEREQUAL:
+      node = avl_find_greaterequal(tree, key);
+      break;
+  }
+  return node == NULL ? NULL : (((char *)node) - offset);
 }
 
 /**
