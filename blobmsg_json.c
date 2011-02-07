@@ -180,6 +180,9 @@ static void blobmsg_format_element(struct strbuf *s, struct blob_attr *attr, boo
 	void *data;
 	int len;
 
+	if (!blobmsg_check_attr(attr, false))
+		return;
+
 	if (!array && blobmsg_name(attr)[0]) {
 		blobmsg_format_string(s, blobmsg_name(attr));
 		blobmsg_puts(s, ":", 1);
