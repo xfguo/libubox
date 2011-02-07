@@ -71,7 +71,11 @@ int uloop_timeout_add(struct uloop_timeout *timeout);
 int uloop_timeout_set(struct uloop_timeout *timeout, int msecs);
 int uloop_timeout_cancel(struct uloop_timeout *timeout);
 
-void uloop_end(void);
+static inline void uloop_end(void)
+{
+	uloop_cancelled = true;
+}
+
 int uloop_init(void);
 void uloop_run(void);
 void uloop_done(void);

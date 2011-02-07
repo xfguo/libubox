@@ -368,11 +368,6 @@ static void uloop_process_timeouts(struct timeval *tv)
 	}
 }
 
-void uloop_end(void)
-{
-	uloop_cancelled = true;
-}
-
 void uloop_run(void)
 {
 	struct timeval tv;
