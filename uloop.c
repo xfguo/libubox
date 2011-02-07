@@ -46,7 +46,7 @@
 #endif
 #define ULOOP_MAX_EVENTS 10
 
-struct uloop_timeout *first_timeout;
+static struct uloop_timeout *first_timeout;
 static int poll_fd;
 bool uloop_cancelled = false;
 
