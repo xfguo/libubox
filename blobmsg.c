@@ -188,10 +188,6 @@ blobmsg_add_field(struct blob_buf *buf, int type, const char *name,
 	struct blob_attr *attr;
 	void *data_dest;
 
-	if (type == BLOBMSG_TYPE_ARRAY ||
-	    type == BLOBMSG_TYPE_TABLE)
-		return -1;
-
 	attr = blobmsg_new(buf, type, name, len, &data_dest);
 	if (!attr)
 		return -1;
