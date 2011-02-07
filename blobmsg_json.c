@@ -263,5 +263,7 @@ char *blobmsg_format_json_with_cb(struct blob_attr *attr, bool list, blobmsg_jso
 		return NULL;
 
 	s.buf = realloc(s.buf, s.pos + 1);
+	s.buf[s.pos] = 0;
+
 	return s.buf;
 }
