@@ -213,7 +213,7 @@ static void blobmsg_format_element(struct strbuf *s, struct blob_attr *attr, boo
 		sprintf(buf, "%d", *(uint32_t *)data);
 		break;
 	case BLOBMSG_TYPE_INT64:
-		sprintf(buf, "%lld", *(uint64_t *)data);
+		sprintf(buf, "%lld", (long long int) *(uint64_t *)data);
 		break;
 	case BLOBMSG_TYPE_STRING:
 		blobmsg_format_string(s, data);
