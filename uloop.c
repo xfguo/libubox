@@ -47,13 +47,16 @@
 #define ULOOP_MAX_EVENTS 10
 
 static struct uloop_timeout *first_timeout;
-static int poll_fd;
+static int poll_fd = -1;
 bool uloop_cancelled = false;
 
 #ifdef USE_KQUEUE
 
 int uloop_init(void)
 {
+	if (poll_fd >= 0)
+		return 0;
+
 	poll_fd = kqueue();
 	if (poll_fd < 0)
 		return -1;
@@ -160,6 +163,9 @@ static void uloop_run_events(int timeout)
 
 int uloop_init(void)
 {
+	if (poll_fd >= 0)
+		return 0;
+
 	poll_fd = epoll_create(32);
 	if (poll_fd < 0)
 		return -1;
@@ -383,5 +389,9 @@ void uloop_run(void)
 
 void uloop_done(void)
 {
+	if (poll_fd < 0)
+		return;
+
 	close(poll_fd);
+	poll_fd = -1;
 }
