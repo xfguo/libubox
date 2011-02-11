@@ -383,6 +383,8 @@ void uloop_run(void)
 	{
 		gettimeofday(&tv, NULL);
 		uloop_process_timeouts(&tv);
+		if (uloop_cancelled)
+			break;
 		uloop_run_events(uloop_get_next_timeout(&tv));
 	}
 }
