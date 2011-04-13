@@ -82,7 +82,7 @@ struct avl_node {
   /**
    * pointer to key of node
    */
-  void *key;
+  const void *key;
 
   /**
    * balance state of AVL tree (0,-1,+1)
