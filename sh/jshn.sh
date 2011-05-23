@@ -1,11 +1,11 @@
 # functions for parsing and generating json
 
-append() {
+jshn_append() {
 	local var="$1"
 	local value="$2"
 	local sep="${3:- }"
 
-	eval "export ${NO_EXPORT:+-n} -- \"$var=\${$var:+\${$var}\${value:+\$sep}}\$value\""
+	eval "export -- \"$var=\${$var:+\${$var}\${value:+\$sep}}\$value\""
 }
 
 json_init() {
@@ -19,17 +19,17 @@ json_add_generic() {
 	local val="$3"
 	local cur="${4:-$JSON_CUR}"
 
-	export ${NO_EXPORT:+-n} -- "${cur}_$var=$val"
-	export ${NO_EXPORT:+-n} -- "TYPE_${cur}_$var=$type"
-	append JSON_UNSET "${cur}_$var TYPE_${cur}_$var"
-	append "KEYS_${cur}" "$var"
+	export -- "${cur}_$var=$val"
+	export -- "TYPE_${cur}_$var=$type"
+	jshn_append JSON_UNSET "${cur}_$var TYPE_${cur}_$var"
+	jshn_append "KEYS_${cur}" "$var"
 }
 
 json_add_table() {
 	JSON_SEQ=$(($JSON_SEQ + 1))
-	append JSON_STACK "$JSON_CUR"
+	jshn_append JSON_STACK "$JSON_CUR"
 	local table="JSON_TABLE$JSON_SEQ"
-	export ${NO_EXPORT:+-n} -- "UP_$table=$JSON_CUR"
+	export -- "UP_$table=$JSON_CUR"
 	JSON_CUR="$table"
 }
 
@@ -82,13 +82,13 @@ json_dump() {
 json_get_type() {
 	local dest="$1"
 	local var="$2"
-	eval "export ${NO_EXPORT:+-n} -- \"$dest=\${TYPE_${JSON_CUR}_$var}\""
+	eval "export -- \"$dest=\${TYPE_${JSON_CUR}_$var}\""
 }
 
 json_get_var() {
 	local dest="$1"
 	local var="$2"
-	eval "export ${NO_EXPORT:+-n} -- \"$dest=\${${JSON_CUR}_$var}\""
+	eval "export -- \"$dest=\${${JSON_CUR}_$var}\""
 }
 
 json_select() {
