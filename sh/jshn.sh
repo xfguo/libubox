@@ -30,6 +30,8 @@ json_add_table() {
 	jshn_append JSON_STACK "$JSON_CUR"
 	local table="JSON_TABLE$JSON_SEQ"
 	export -- "UP_$table=$JSON_CUR"
+	export -- "KEYS_$table="
+	jshn_append JSON_UNSET "KEYS_$table UP_$table"
 	JSON_CUR="$table"
 }
 
@@ -41,7 +43,6 @@ json_add_object() {
 
 json_close_object() {
 	local oldstack="$JSON_STACK"
-	export "KEYS_${JSON_CUR}"
 	JSON_CUR="${JSON_STACK##* }"
 	JSON_STACK="${JSON_STACK% *}"
 	[[ "$oldstack" == "$JSON_STACK" ]] && JSON_STACK=
