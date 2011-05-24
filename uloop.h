@@ -23,6 +23,7 @@
 #include <sys/time.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include <signal.h>
 
 #if defined(__APPLE__) || defined(__FreeBSD__)
 #define USE_KQUEUE
@@ -30,11 +31,15 @@
 #define USE_EPOLL
 #endif
 
+#include "list.h"
+
 struct uloop_fd;
 struct uloop_timeout;
+struct uloop_process;
 
 typedef void (*uloop_fd_handler)(struct uloop_fd *u, unsigned int events);
 typedef void (*uloop_timeout_handler)(struct uloop_timeout *t);
+typedef void (*uloop_process_handler)(struct uloop_process *c, int ret);
 
 #define ULOOP_READ		(1 << 0)
 #define ULOOP_WRITE		(1 << 1)
@@ -55,14 +60,24 @@ struct uloop_fd
 
 struct uloop_timeout
 {
-	uloop_timeout_handler cb;
-	struct uloop_timeout *prev;
-	struct uloop_timeout *next;
-	struct timeval time;
+	struct list_head list;
 	bool pending;
+
+	uloop_timeout_handler cb;
+	struct timeval time;
+};
+
+struct uloop_process
+{
+	struct list_head list;
+	bool pending;
+
+	uloop_process_handler cb;
+	pid_t pid;
 };
 
 extern bool uloop_cancelled;
+extern bool uloop_handle_sigchld;
 
 int uloop_fd_add(struct uloop_fd *sock, unsigned int flags);
 int uloop_fd_delete(struct uloop_fd *sock);
@@ -70,6 +85,9 @@ int uloop_fd_delete(struct uloop_fd *sock);
 int uloop_timeout_add(struct uloop_timeout *timeout);
 int uloop_timeout_set(struct uloop_timeout *timeout, int msecs);
 int uloop_timeout_cancel(struct uloop_timeout *timeout);
+
+int uloop_process_add(struct uloop_process *p);
+int uloop_process_delete(struct uloop_process *p);
 
 static inline void uloop_end(void)
 {

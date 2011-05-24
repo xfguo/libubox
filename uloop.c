@@ -22,6 +22,15 @@
 #include <sys/time.h>
 #include <sys/types.h>
 
+#include <unistd.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <errno.h>
+#include <poll.h>
+#include <string.h>
+#include <fcntl.h>
+#include <stdbool.h>
+
 #include "uloop.h"
 
 #ifdef USE_KQUEUE
@@ -31,24 +40,19 @@
 #include <sys/epoll.h>
 #endif
 
-#include <unistd.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <errno.h>
-#include <poll.h>
-#include <string.h>
-#include <fcntl.h>
-#include <signal.h>
-#include <stdbool.h>
 
 #ifndef ARRAY_SIZE
 #define ARRAY_SIZE(arr) (sizeof(arr) / sizeof((arr)[0]))
 #endif
 #define ULOOP_MAX_EVENTS 10
 
-static struct uloop_timeout *first_timeout;
+static struct list_head timeouts = LIST_HEAD_INIT(timeouts);
+static struct list_head processes = LIST_HEAD_INIT(processes);
+
 static int poll_fd = -1;
 bool uloop_cancelled = false;
+bool uloop_handle_sigchld = true;
+static bool do_sigchld = false;
 
 #ifdef USE_KQUEUE
 
@@ -269,25 +273,20 @@ static int tv_diff(struct timeval *t1, struct timeval *t2)
 
 int uloop_timeout_add(struct uloop_timeout *timeout)
 {
-	struct uloop_timeout **head = &first_timeout;
-	struct uloop_timeout *prev = NULL;
+	struct uloop_timeout *tmp;
+	struct list_head *h = &timeouts;
 
 	if (timeout->pending)
 		return -1;
 
-	while (*head) {
-		if (tv_diff(&(*head)->time, &timeout->time) > 0)
+	list_for_each_entry(tmp, &timeouts, list) {
+		if (tv_diff(&tmp->time, &timeout->time) > 0) {
+			h = &tmp->list;
 			break;
-
-		prev = *head;
-		head = &(*head)->next;
+		}
 	}
 
-	timeout->prev = prev;
-	timeout->next = *head;
-	if (timeout->next)
-		timeout->next->prev = timeout;
-	*head = timeout;
+	list_add_tail(&timeout->list, h);
 	timeout->pending = true;
 
 	return 0;
@@ -318,17 +317,69 @@ int uloop_timeout_cancel(struct uloop_timeout *timeout)
 	if (!timeout->pending)
 		return -1;
 
-	if (timeout->prev)
-		timeout->prev->next = timeout->next;
-	else
-		first_timeout = timeout->next;
-
-	if (timeout->next)
-		timeout->next->prev = timeout->prev;
-
+	list_del(&timeout->list);
 	timeout->pending = false;
 
 	return 0;
+}
+
+int uloop_process_add(struct uloop_process *p)
+{
+	struct uloop_process *tmp;
+	struct list_head *h = &processes;
+
+	if (p->pending)
+		return -1;
+
+	list_for_each_entry(tmp, &processes, list) {
+		if (tmp->pid > p->pid) {
+			h = &tmp->list;
+			break;
+		}
+	}
+
+	list_add_tail(&p->list, h);
+	p->pending = true;
+
+	return 0;
+}
+
+int uloop_process_delete(struct uloop_process *p)
+{
+	if (!p->pending)
+		return -1;
+
+	list_del(&p->list);
+	p->pending = false;
+
+	return 0;
+}
+
+static void uloop_handle_processes(void)
+{
+	struct uloop_process *p, *tmp;
+	pid_t pid;
+	int ret;
+
+	do_sigchld = false;
+
+	while (1) {
+		pid = waitpid(-1, &ret, WNOHANG);
+		if (pid <= 0)
+			return;
+
+		list_for_each_entry_safe(p, tmp, &processes, list) {
+			if (p->pid < pid)
+				continue;
+
+			if (p->pid > pid)
+				break;
+
+			uloop_process_delete(p);
+			p->cb(p, ret);
+		}
+	}
+
 }
 
 static void uloop_handle_sigint(int signo)
@@ -336,23 +387,36 @@ static void uloop_handle_sigint(int signo)
 	uloop_cancelled = true;
 }
 
+static void uloop_sigchld(int signo)
+{
+	do_sigchld = true;
+}
+
 static void uloop_setup_signals(void)
 {
 	struct sigaction s;
+
 	memset(&s, 0, sizeof(struct sigaction));
 	s.sa_handler = uloop_handle_sigint;
 	s.sa_flags = 0;
 	sigaction(SIGINT, &s, NULL);
+
+	if (uloop_handle_sigchld) {
+		s.sa_handler = uloop_sigchld;
+		sigaction(SIGCHLD, &s, NULL);
+	}
 }
 
 static int uloop_get_next_timeout(struct timeval *tv)
 {
+	struct uloop_timeout *timeout;
 	int diff;
 
-	if (!first_timeout)
+	if (list_empty(&timeouts))
 		return -1;
 
-	diff = tv_diff(&first_timeout->time, tv);
+	timeout = list_first_entry(&timeouts, struct uloop_timeout, list);
+	diff = tv_diff(&timeout->time, tv);
 	if (diff < 0)
 		return 0;
 
@@ -361,16 +425,15 @@ static int uloop_get_next_timeout(struct timeval *tv)
 
 static void uloop_process_timeouts(struct timeval *tv)
 {
-	struct uloop_timeout *timeout;
+	struct uloop_timeout *t, *tmp;
 
-	while (first_timeout) {
-		if (tv_diff(&first_timeout->time, tv) > 0)
+	list_for_each_entry_safe(t, tmp, &timeouts, list) {
+		if (tv_diff(&t->time, tv) > 0)
 			break;
 
-		timeout = first_timeout;
-		uloop_timeout_cancel(timeout);
-		if (timeout->cb)
-			timeout->cb(timeout);
+		uloop_timeout_cancel(t);
+		if (t->cb)
+			t->cb(t);
 	}
 }
 
@@ -385,6 +448,9 @@ void uloop_run(void)
 		uloop_process_timeouts(&tv);
 		if (uloop_cancelled)
 			break;
+
+		if (do_sigchld)
+			uloop_handle_processes();
 		uloop_run_events(uloop_get_next_timeout(&tv));
 	}
 }
