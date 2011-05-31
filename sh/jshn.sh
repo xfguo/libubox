@@ -77,7 +77,7 @@ json_load() {
 }
 
 json_dump() {
-	jshn -w
+	jshn "$@" -w
 }
 
 json_get_type() {

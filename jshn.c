@@ -210,33 +210,38 @@ out:
 	return obj;
 }
 
-static int jshn_format(void)
+static int jshn_format(bool no_newline)
 {
 	json_object *obj;
 
 	obj = json_object_new_object();
 	jshn_add_objects(obj, "JSON_VAR", false);
-	fprintf(stdout, "%s\n", json_object_to_json_string(obj));
+	fprintf(stdout, "%s%s", json_object_to_json_string(obj),
+		no_newline ? "" : "\n");
 	json_object_put(obj);
 	return 0;
 }
 
 static int usage(const char *progname)
 {
-	fprintf(stderr, "Usage: %s -r <message>|-w\n", progname);
+	fprintf(stderr, "Usage: %s [-n] -r <message>|-w\n", progname);
 	return 2;
 }
 
 int main(int argc, char **argv)
 {
+	bool no_newline = false;
 	int ch;
 
-	while ((ch = getopt(argc, argv, "r:w")) != -1) {
+	while ((ch = getopt(argc, argv, "nr:w")) != -1) {
 		switch(ch) {
 		case 'r':
 			return jshn_parse(optarg);
 		case 'w':
-			return jshn_format();
+			return jshn_format(no_newline);
+		case 'n':
+			no_newline = true;
+			break;
 		default:
 			return usage(argv[0]);
 		}
