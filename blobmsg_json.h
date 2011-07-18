@@ -26,11 +26,17 @@ bool blobmsg_add_json_from_string(struct blob_buf *b, const char *str);
 typedef const char *(*blobmsg_json_format_t)(void *priv, struct blob_attr *attr);
 
 char *blobmsg_format_json_with_cb(struct blob_attr *attr, bool list,
-				  blobmsg_json_format_t cb, void *priv);
+				  blobmsg_json_format_t cb, void *priv,
+				  int indent);
 
 static inline char *blobmsg_format_json(struct blob_attr *attr, bool list)
 {
-	return blobmsg_format_json_with_cb(attr, list, NULL, NULL);
+	return blobmsg_format_json_with_cb(attr, list, NULL, NULL, -1);
+}
+
+static inline char *blobmsg_format_json_indent(struct blob_attr *attr, bool list, int indent)
+{
+	return blobmsg_format_json_with_cb(attr, list, NULL, NULL, indent);
 }
 
 #endif

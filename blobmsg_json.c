@@ -98,6 +98,8 @@ struct strbuf {
 
 	blobmsg_json_format_t custom_format;
 	void *priv;
+	bool indent;
+	int indent_level;
 };
 
 static bool blobmsg_puts(struct strbuf *s, const char *c, int len)
@@ -115,6 +117,29 @@ static bool blobmsg_puts(struct strbuf *s, const char *c, int len)
 	s->pos += len;
 	return true;
 }
+
+static void add_separator(struct strbuf *s)
+{
+	static char indent_chars[17] = "\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t";
+	static const char indent_space = ' ';
+	int indent;
+	char *start;
+
+	if (!s->indent) {
+		blobmsg_puts(s, &indent_space, 1);
+		return;
+	}
+
+	indent = s->indent_level;
+	if (indent > 16)
+		indent = 16;
+
+	start = &indent_chars[sizeof(indent_chars) - indent - 1];
+	*start = '\n';
+	blobmsg_puts(s, start, indent + 1);
+	*start = '\t';
+}
+
 
 static void blobmsg_format_string(struct strbuf *s, const char *str)
 {
@@ -185,7 +210,7 @@ static void blobmsg_format_element(struct strbuf *s, struct blob_attr *attr, boo
 
 	if (!array && blobmsg_name(attr)[0]) {
 		blobmsg_format_string(s, blobmsg_name(attr));
-		blobmsg_puts(s, ":", 1);
+		blobmsg_puts(s, ": ", 2);
 	}
 	if (head) {
 		data = blob_data(attr);
@@ -233,18 +258,24 @@ static void blobmsg_format_json_list(struct strbuf *s, struct blob_attr *attr, i
 	bool first = true;
 	int rem = len;
 
-	blobmsg_puts(s, (array ? "[ " : "{ "), 2);
+	blobmsg_puts(s, (array ? "[" : "{" ), 1);
+	s->indent_level++;
+	add_separator(s);
 	__blob_for_each_attr(pos, attr, rem) {
-		if (!first)
-			blobmsg_puts(s, ", ", 2);
+		if (!first) {
+			blobmsg_puts(s, ",", 1);
+			add_separator(s);
+		}
 
 		blobmsg_format_element(s, pos, array, false);
 		first = false;
 	}
-	blobmsg_puts(s, (array ? " ]" : " }"), 2);
+	s->indent_level--;
+	add_separator(s);
+	blobmsg_puts(s, (array ? "]" : "}"), 1);
 }
 
-char *blobmsg_format_json_with_cb(struct blob_attr *attr, bool list, blobmsg_json_format_t cb, void *priv)
+char *blobmsg_format_json_with_cb(struct blob_attr *attr, bool list, blobmsg_json_format_t cb, void *priv, int indent)
 {
 	struct strbuf s;
 
@@ -253,6 +284,12 @@ char *blobmsg_format_json_with_cb(struct blob_attr *attr, bool list, blobmsg_jso
 	s.pos = 0;
 	s.custom_format = cb;
 	s.priv = priv;
+	s.indent = false;
+
+	if (indent >= 0) {
+		s.indent = true;
+		s.indent_level = indent;
+	}
 
 	if (list)
 		blobmsg_format_json_list(&s, blob_data(attr), blob_len(attr), false);
