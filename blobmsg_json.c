@@ -228,7 +228,7 @@ static void blobmsg_format_element(struct strbuf *s, struct blob_attr *attr, boo
 
 	data_str = buf;
 	switch(blob_id(attr)) {
-	case BLOBMSG_TYPE_INT8:
+	case BLOBMSG_TYPE_BOOL:
 		sprintf(buf, "%s", *(uint8_t *)data ? "true" : "false");
 		break;
 	case BLOBMSG_TYPE_INT32:
