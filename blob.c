@@ -80,6 +80,14 @@ blob_buf_init(struct blob_buf *buf, int id)
 	return 0;
 }
 
+void
+blob_buf_free(struct blob_buf *buf)
+{
+	free(buf->buf);
+	buf->buf = NULL;
+	buf->buflen = 0;
+}
+
 struct blob_attr *
 blob_new(struct blob_buf *buf, int id, int payload)
 {

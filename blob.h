@@ -214,6 +214,7 @@ blob_next(const struct blob_attr *attr)
 }
 
 extern int blob_buf_init(struct blob_buf *buf, int id);
+extern void blob_buf_free(struct blob_buf *buf);
 extern struct blob_attr *blob_new(struct blob_buf *buf, int id, int payload);
 extern void *blob_nest_start(struct blob_buf *buf, int id);
 extern void blob_nest_end(struct blob_buf *buf, void *cookie);
