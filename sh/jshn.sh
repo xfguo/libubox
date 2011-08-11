@@ -10,7 +10,7 @@ jshn_append() {
 
 json_init() {
 	[ -n "$JSON_UNSET" ] && eval "unset $JSON_UNSET"
-	export -- JSON_SEQ=0 JSON_STACK= JSON_CUR="JSON_VAR" JSON_UNSET=
+	export -- JSON_SEQ=0 JSON_STACK= JSON_CUR="JSON_VAR" JSON_UNSET="" KEYS_JSON_VAR= TYPE_JSON_VAR=
 }
 
 json_add_generic() {
@@ -19,6 +19,12 @@ json_add_generic() {
 	local val="$3"
 	local cur="${4:-$JSON_CUR}"
 
+	[ "${cur%%[0-9]*}" = "JSON_ARRAY" ] && {
+		eval "local aseq=\"\${SEQ_$cur}\""
+		var=$(( ${aseq:-0} + 1 ))
+		export -- "SEQ_$cur=$var"
+	}
+
 	export -- "${cur}_$var=$val"
 	export -- "TYPE_${cur}_$var=$type"
 	jshn_append JSON_UNSET "${cur}_$var TYPE_${cur}_$var"
@@ -26,18 +32,20 @@ json_add_generic() {
 }
 
 json_add_table() {
+	local TYPE="$1"
 	JSON_SEQ=$(($JSON_SEQ + 1))
 	jshn_append JSON_STACK "$JSON_CUR"
-	local table="JSON_TABLE$JSON_SEQ"
+	local table="JSON_$TYPE$JSON_SEQ"
 	export -- "UP_$table=$JSON_CUR"
 	export -- "KEYS_$table="
 	jshn_append JSON_UNSET "KEYS_$table UP_$table"
+	[ "$TYPE" = "ARRAY" ] && jshn_append JSON_UNSET "SEQ_$table"
 	JSON_CUR="$table"
 }
 
 json_add_object() {
 	local cur="$JSON_CUR"
-	json_add_table
+	json_add_table TABLE
 	json_add_generic object "$1" "$JSON_CUR" "$cur"
 }
 
@@ -50,7 +58,7 @@ json_close_object() {
 
 json_add_array() {
 	local cur="$JSON_CUR"
-	json_add_table
+	json_add_table ARRAY
 	json_add_generic array "$1" "$JSON_CUR" "$cur"
 }
 
