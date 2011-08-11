@@ -39,6 +39,7 @@
 #ifdef USE_EPOLL
 #include <sys/epoll.h>
 #endif
+#include <sys/wait.h>
 
 
 #ifndef ARRAY_SIZE
