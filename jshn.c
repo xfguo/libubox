@@ -1,11 +1,11 @@
 #include <json/json.h>
-#include <libubox/list.h>
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdbool.h>
 #include <ctype.h>
 #include <getopt.h>
+#include "list.h"
 
 #define MAX_VARLEN	256
 
