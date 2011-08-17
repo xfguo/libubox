@@ -89,7 +89,7 @@ int blobmsg_parse(const struct blobmsg_policy *policy, int policy_len,
 				return -1;
 
 			if (tb[i])
-				return -1;
+				continue;
 
 			if (strcmp(policy[i].name, (char *) hdr->name) != 0)
 				continue;
