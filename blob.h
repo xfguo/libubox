@@ -213,6 +213,15 @@ blob_next(const struct blob_attr *attr)
 	return (struct blob_attr *) ((char *) attr + blob_pad_len(attr));
 }
 
+static inline bool
+blob_attr_equal(const struct blob_attr *a1, const struct blob_attr *a2)
+{
+	if (blob_pad_len(a1) != blob_pad_len(a2))
+		return false;
+
+	return !memcmp(a1, a2, blob_pad_len(a1));
+}
+
 extern int blob_buf_init(struct blob_buf *buf, int id);
 extern void blob_buf_free(struct blob_buf *buf);
 extern struct blob_attr *blob_new(struct blob_buf *buf, int id, int payload);
