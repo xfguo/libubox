@@ -201,3 +201,18 @@ blob_parse(struct blob_attr *attr, struct blob_attr **data, const struct blob_at
 	}
 	return found;
 }
+
+bool
+blob_attr_equal(const struct blob_attr *a1, const struct blob_attr *a2)
+{
+	if (!a1 && !a2)
+		return true;
+
+	if (!a1 || !a2)
+		return false;
+
+	if (blob_pad_len(a1) != blob_pad_len(a2))
+		return false;
+
+	return !memcmp(a1, a2, blob_pad_len(a1));
+}
