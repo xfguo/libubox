@@ -145,6 +145,11 @@ static inline uint8_t blobmsg_get_u8(struct blob_attr *attr)
 	return *(uint8_t *) blobmsg_data(attr);
 }
 
+static inline bool blobmsg_get_bool(struct blob_attr *attr)
+{
+	return *(uint8_t *) blobmsg_data(attr);
+}
+
 static inline uint16_t blobmsg_get_u16(struct blob_attr *attr)
 {
 	return *(uint16_t *) blobmsg_data(attr);
