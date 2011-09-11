@@ -19,11 +19,15 @@ json_add_generic() {
 	local val="$3"
 	local cur="${4:-$JSON_CUR}"
 
-	[ "${cur%%[0-9]*}" = "JSON_ARRAY" ] && {
+	if [ "${cur%%[0-9]*}" = "JSON_ARRAY" ]; then
 		eval "local aseq=\"\${SEQ_$cur}\""
 		var=$(( ${aseq:-0} + 1 ))
 		export -- "SEQ_$cur=$var"
-	}
+	else
+		local name="$(echo -n "$var" | tr -C '[a-zA-Z_]' _)"
+		[[ "$name" == "$var" ]] || export -- "NAME_${cur}_${name}=$var"
+		var="$name"
+	fi
 
 	export -- "${cur}_$var=$val"
 	export -- "TYPE_${cur}_$var=$type"

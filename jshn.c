@@ -150,14 +150,19 @@ static char *get_keys(const char *prefix)
 	return getenv(keys);
 }
 
-static void get_var(const char *prefix, const char *name, char **var, char **type)
+static void get_var(const char *prefix, const char **name, char **var, char **type)
 {
-	char *tmpname;
+	char *tmpname, *varname;
 
-	tmpname = alloca(strlen(prefix) + 1 + strlen(name) + 1 + sizeof("TYPE_"));
-	sprintf(tmpname, "TYPE_%s_%s", prefix, name);
+	tmpname = alloca(strlen(prefix) + 1 + strlen(*name) + 1 + sizeof("TYPE_"));
+	sprintf(tmpname, "TYPE_%s_%s", prefix, *name);
 	*var = getenv(tmpname + 5);
 	*type = getenv(tmpname);
+
+	memcpy(tmpname, "NAME", 4);
+	varname = getenv(tmpname);
+	if (varname)
+		*name = varname;
 }
 
 static json_object *jshn_add_objects(json_object *obj, const char *prefix, bool array);
@@ -167,7 +172,7 @@ static void jshn_add_object_var(json_object *obj, bool array, const char *prefix
 	json_object *new;
 	char *var, *type;
 
-	get_var(prefix, name, &var, &type);
+	get_var(prefix, &name, &var, &type);
 	if (!var || !type)
 		return;
 
