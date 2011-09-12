@@ -56,6 +56,11 @@ static inline const char *blobmsg_name(const struct blob_attr *attr)
 	return (const char *) hdr->name;
 }
 
+static inline int blobmsg_type(const struct blob_attr *attr)
+{
+	return blob_id(attr);
+}
+
 static inline void *blobmsg_data(const struct blob_attr *attr)
 {
 	struct blobmsg_hdr *hdr = blob_data(attr);
