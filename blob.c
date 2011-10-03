@@ -18,8 +18,11 @@
 static bool
 blob_buffer_grow(struct blob_buf *buf, int minlen)
 {
-	buf->buflen += ((minlen / 256) + 1) * 256;
+	int delta = ((minlen / 256) + 1) * 256;
+	buf->buflen += delta;
 	buf->buf = realloc(buf->buf, buf->buflen);
+	if (buf->buf)
+		memset(buf->buf + buf->buflen - delta, 0, delta);
 	return !!buf->buf;
 }
 
