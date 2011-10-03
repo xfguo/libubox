@@ -177,7 +177,7 @@ void blobmsg_add_string_buffer(struct blob_buf *buf);
 
 #define blobmsg_for_each_attr(pos, attr, rem) \
 	for (rem = blobmsg_data_len(attr), pos = blobmsg_data(attr); \
-		 (blob_pad_len(pos) <= rem) && \
+		 rem > 0 && (blob_pad_len(pos) <= rem) && \
 		 (blob_pad_len(pos) >= sizeof(struct blob_attr)); \
 		 rem -= blob_pad_len(pos), pos = blob_next(pos))
 
