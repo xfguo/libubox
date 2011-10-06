@@ -23,6 +23,12 @@ static const int blob_type[__BLOBMSG_TYPE_LAST] = {
 	[BLOBMSG_TYPE_STRING] = BLOB_ATTR_STRING,
 };
 
+static uint16_t
+blobmsg_namelen(const struct blobmsg_hdr *hdr)
+{
+	return be16_to_cpu(hdr->namelen);
+}
+
 bool blobmsg_check_attr(const struct blob_attr *attr, bool name)
 {
 	const struct blobmsg_hdr *hdr;
@@ -36,10 +42,10 @@ bool blobmsg_check_attr(const struct blob_attr *attr, bool name)
 	if (!hdr->namelen && name)
 		return false;
 
-	if (hdr->namelen > blob_len(attr) - sizeof(struct blobmsg_hdr))
+	if (blobmsg_namelen(hdr) > blob_len(attr) - sizeof(struct blobmsg_hdr))
 		return false;
 
-	if (hdr->name[hdr->namelen] != 0)
+	if (hdr->name[blobmsg_namelen(hdr)] != 0)
 		return false;
 
 	id = blob_id(attr);
@@ -82,7 +88,7 @@ int blobmsg_parse(const struct blobmsg_policy *policy, int policy_len,
 			    blob_id(attr) != policy[i].type)
 				continue;
 
-			if (hdr->namelen != pslen[i])
+			if (blobmsg_namelen(hdr) != pslen[i])
 				continue;
 
 			if (!blobmsg_check_attr(attr, true))
@@ -119,7 +125,7 @@ blobmsg_new(struct blob_buf *buf, int type, const char *name, int payload_len, v
 		return NULL;
 
 	hdr = blob_data(attr);
-	hdr->namelen = namelen;
+	hdr->namelen = cpu_to_be16(namelen);
 	strcpy((char *) hdr->name, (const char *)name);
 	*data = blobmsg_data(attr);
 
