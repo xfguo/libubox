@@ -114,6 +114,7 @@ blobmsg_new(struct blob_buf *buf, int type, const char *name, int payload_len, v
 	struct blob_attr *attr;
 	struct blobmsg_hdr *hdr;
 	int attrlen, namelen;
+	char *pad_start, *pad_end;
 
 	if (!name)
 		name = "";
@@ -127,7 +128,10 @@ blobmsg_new(struct blob_buf *buf, int type, const char *name, int payload_len, v
 	hdr = blob_data(attr);
 	hdr->namelen = cpu_to_be16(namelen);
 	strcpy((char *) hdr->name, (const char *)name);
-	*data = blobmsg_data(attr);
+	pad_end = *data = blobmsg_data(attr);
+	pad_start = (char *) &hdr->name[namelen];
+	if (pad_start < pad_end)
+		memset(pad_start, 0, pad_end - pad_start);
 
 	return attr;
 }
