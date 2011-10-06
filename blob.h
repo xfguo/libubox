@@ -204,6 +204,7 @@ blob_next(const struct blob_attr *attr)
 	return (struct blob_attr *) ((char *) attr + blob_pad_len(attr));
 }
 
+extern void blob_fill_pad(struct blob_attr *attr);
 extern void blob_set_raw_len(struct blob_attr *attr, unsigned int len);
 extern bool blob_attr_equal(const struct blob_attr *a1, const struct blob_attr *a2);
 extern int blob_buf_init(struct blob_buf *buf, int id);

@@ -188,6 +188,8 @@ blobmsg_add_string_buffer(struct blob_buf *buf)
 
 	attrlen = blob_raw_len(attr) + len;
 	blob_set_raw_len(attr, attrlen);
+	blob_fill_pad(attr);
+
 	blob_set_raw_len(buf->head, blob_raw_len(buf->head) + blob_pad_len(attr));
 }
 
