@@ -91,6 +91,27 @@ blob_buf_free(struct blob_buf *buf)
 	buf->buflen = 0;
 }
 
+static void
+blob_fill_pad(struct blob_attr *attr)
+{
+	char *buf = (char *) attr;
+	int len = blob_pad_len(attr);
+	int delta = len - blob_raw_len(attr);
+
+	if (delta > 0)
+		memset(buf + len - delta, 0, delta);
+}
+
+void
+blob_set_raw_len(struct blob_attr *attr, unsigned int len)
+{
+	int id = blob_id(attr);
+	len &= BLOB_ATTR_LEN_MASK;
+	len |= (id << BLOB_ATTR_ID_SHIFT) & BLOB_ATTR_ID_MASK;
+	attr->id_len = cpu_to_be32(len);
+	blob_fill_pad(attr);
+}
+
 struct blob_attr *
 blob_new(struct blob_buf *buf, int id, int payload)
 {

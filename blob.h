@@ -165,15 +165,6 @@ blob_pad_len(const struct blob_attr *attr)
 	return len;
 }
 
-static inline void
-blob_set_raw_len(struct blob_attr *attr, unsigned int len)
-{
-	int id = blob_id(attr);
-	len &= BLOB_ATTR_LEN_MASK;
-	len |= (id << BLOB_ATTR_ID_SHIFT) & BLOB_ATTR_ID_MASK;
-	attr->id_len = cpu_to_be32(len);
-}
-
 static inline uint8_t
 blob_get_u8(const struct blob_attr *attr)
 {
@@ -213,6 +204,7 @@ blob_next(const struct blob_attr *attr)
 	return (struct blob_attr *) ((char *) attr + blob_pad_len(attr));
 }
 
+extern void blob_set_raw_len(struct blob_attr *attr, unsigned int len);
 extern bool blob_attr_equal(const struct blob_attr *a1, const struct blob_attr *a2);
 extern int blob_buf_init(struct blob_buf *buf, int id);
 extern void blob_buf_free(struct blob_buf *buf);
