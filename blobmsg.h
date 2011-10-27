@@ -52,7 +52,7 @@ static inline int blobmsg_hdrlen(int namelen)
 
 static inline const char *blobmsg_name(const struct blob_attr *attr)
 {
-	struct blobmsg_hdr *hdr = blob_data(attr);
+	struct blobmsg_hdr *hdr = (struct blobmsg_hdr *) blob_data(attr);
 	return (const char *) hdr->name;
 }
 
@@ -63,7 +63,7 @@ static inline int blobmsg_type(const struct blob_attr *attr)
 
 static inline void *blobmsg_data(const struct blob_attr *attr)
 {
-	struct blobmsg_hdr *hdr = blob_data(attr);
+	struct blobmsg_hdr *hdr = (struct blobmsg_hdr *) blob_data(attr);
 	return (char *) hdr + blobmsg_hdrlen(be16_to_cpu(hdr->namelen));
 }
 
@@ -71,8 +71,8 @@ static inline int blobmsg_data_len(const struct blob_attr *attr)
 {
 	uint8_t *start, *end;
 
-	start = blob_data(attr);
-	end = blobmsg_data(attr);
+	start = (uint8_t *) blob_data(attr);
+	end = (uint8_t *) blobmsg_data(attr);
 
 	return blob_len(attr) - (end - start);
 }
