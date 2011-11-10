@@ -3,14 +3,17 @@
  *
  * Copyright (C) 2010 Felix Fietkau <nbd@openwrt.org>
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License version 2.1
- * as published by the Free Software Foundation
+ * Permission to use, copy, modify, and/or distribute this software for any
+ * purpose with or without fee is hereby granted, provided that the above
+ * copyright notice and this permission notice appear in all copies.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+ * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+ * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+ * ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+ * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+ * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+ * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
 #ifndef _BLOB_H__
@@ -146,7 +149,7 @@ blob_len(const struct blob_attr *attr)
 }
 
 /*
- * blob_pad_len: returns the complete length of an attribute (including the header)
+ * blob_raw_len: returns the complete length of an attribute (including the header)
  */
 static inline unsigned int
 blob_raw_len(const struct blob_attr *attr)
@@ -192,6 +195,30 @@ blob_get_u64(const struct blob_attr *attr)
 	return be64_to_cpu(*tmp);
 }
 
+static inline int8_t
+blob_get_int8(const struct blob_attr *attr)
+{
+	return blob_get_u8(attr);
+}
+
+static inline int16_t
+blob_get_int16(const struct blob_attr *attr)
+{
+	return blob_get_u16(attr);
+}
+
+static inline int32_t
+blob_get_int32(const struct blob_attr *attr)
+{
+	return blob_get_u32(attr);
+}
+
+static inline int64_t
+blob_get_int64(const struct blob_attr *attr)
+{
+	return blob_get_u64(attr);
+}
+
 static inline const char *
 blob_get_string(const struct blob_attr *attr)
 {
@@ -223,31 +250,36 @@ blob_put_string(struct blob_buf *buf, int id, const char *str)
 }
 
 static inline struct blob_attr *
-blob_put_int8(struct blob_buf *buf, int id, uint8_t val)
+blob_put_u8(struct blob_buf *buf, int id, uint8_t val)
 {
 	return blob_put(buf, id, &val, sizeof(val));
 }
 
 static inline struct blob_attr *
-blob_put_int16(struct blob_buf *buf, int id, uint16_t val)
+blob_put_u16(struct blob_buf *buf, int id, uint16_t val)
 {
 	val = cpu_to_be16(val);
 	return blob_put(buf, id, &val, sizeof(val));
 }
 
 static inline struct blob_attr *
-blob_put_int32(struct blob_buf *buf, int id, uint32_t val)
+blob_put_u32(struct blob_buf *buf, int id, uint32_t val)
 {
 	val = cpu_to_be32(val);
 	return blob_put(buf, id, &val, sizeof(val));
 }
 
 static inline struct blob_attr *
-blob_put_int64(struct blob_buf *buf, int id, uint64_t val)
+blob_put_u64(struct blob_buf *buf, int id, uint64_t val)
 {
 	val = cpu_to_be64(val);
 	return blob_put(buf, id, &val, sizeof(val));
 }
+
+#define blob_put_int8	blob_put_u8
+#define blob_put_int16	blob_put_u16
+#define blob_put_int32	blob_put_u32
+#define blob_put_int64	blob_put_u64
 
 #define __blob_for_each_attr(pos, attr, rem) \
 	for (pos = (void *) attr; \
