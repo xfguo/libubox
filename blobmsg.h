@@ -93,18 +93,21 @@ blobmsg_add_u8(struct blob_buf *buf, const char *name, uint8_t val)
 static inline int
 blobmsg_add_u16(struct blob_buf *buf, const char *name, uint16_t val)
 {
+	val = cpu_to_be16(val);
 	return blobmsg_add_field(buf, BLOBMSG_TYPE_INT16, name, &val, 2);
 }
 
 static inline int
 blobmsg_add_u32(struct blob_buf *buf, const char *name, uint32_t val)
 {
+	val = cpu_to_be32(val);
 	return blobmsg_add_field(buf, BLOBMSG_TYPE_INT32, name, &val, 4);
 }
 
 static inline int
 blobmsg_add_u64(struct blob_buf *buf, const char *name, uint64_t val)
 {
+	val = cpu_to_be64(val);
 	return blobmsg_add_field(buf, BLOBMSG_TYPE_INT64, name, &val, 8);
 }
 
@@ -157,17 +160,17 @@ static inline bool blobmsg_get_bool(struct blob_attr *attr)
 
 static inline uint16_t blobmsg_get_u16(struct blob_attr *attr)
 {
-	return *(uint16_t *) blobmsg_data(attr);
+	return be16_to_cpu(*(uint16_t *) blobmsg_data(attr));
 }
 
 static inline uint32_t blobmsg_get_u32(struct blob_attr *attr)
 {
-	return *(uint32_t *) blobmsg_data(attr);
+	return be32_to_cpu(*(uint32_t *) blobmsg_data(attr));
 }
 
 static inline uint64_t blobmsg_get_u64(struct blob_attr *attr)
 {
-	return *(uint64_t *) blobmsg_data(attr);
+	return be64_to_cpu(*(uint64_t *) blobmsg_data(attr));
 }
 
 void *blobmsg_alloc_string_buffer(struct blob_buf *buf, const char *name, int maxlen);
