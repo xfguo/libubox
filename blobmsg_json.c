@@ -231,6 +231,9 @@ static void blobmsg_format_element(struct strbuf *s, struct blob_attr *attr, boo
 	case BLOBMSG_TYPE_BOOL:
 		sprintf(buf, "%s", *(uint8_t *)data ? "true" : "false");
 		break;
+	case BLOBMSG_TYPE_INT16:
+		sprintf(buf, "%d", *(uint16_t *)data);
+		break;
 	case BLOBMSG_TYPE_INT32:
 		sprintf(buf, "%d", *(uint32_t *)data);
 		break;
