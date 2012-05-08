@@ -117,6 +117,13 @@ blobmsg_add_string(struct blob_buf *buf, const char *name, const char *string)
 	return blobmsg_add_field(buf, BLOBMSG_TYPE_STRING, name, string, strlen(string) + 1);
 }
 
+static inline int
+blobmsg_add_blob(struct blob_buf *buf, struct blob_attr *attr)
+{
+	return blobmsg_add_field(buf, blobmsg_type(attr), blobmsg_name(attr),
+				 blobmsg_data(attr), blobmsg_data_len(attr));
+}
+
 void *blobmsg_open_nested(struct blob_buf *buf, const char *name, bool array);
 
 static inline void *
