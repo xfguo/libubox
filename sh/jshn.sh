@@ -104,6 +104,13 @@ json_get_var() {
 	eval "export -- \"$dest=\${${JSON_CUR}_$var}\""
 }
 
+json_get_vars() {
+	while [ "$#" -gt 0 ]; do
+		local _var="$1"; shift
+		json_get_var "$_var" "$_var"
+	done
+}
+
 json_select() {
 	local target="$1"
 	local type
