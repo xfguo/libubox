@@ -100,7 +100,7 @@ json_get_type() {
 
 json_get_var() {
 	local dest="$1"
-	local var="$(echo -n "$2" | tr -C '[a-zA-Z_]' _)"
+	local var="$(echo -n "$2" | tr -C '[a-zA-Z0-9_]' _)"
 	eval "export -- \"$dest=\${${JSON_CUR}_$var}\""
 }
 
