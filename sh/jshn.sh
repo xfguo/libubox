@@ -24,7 +24,7 @@ json_add_generic() {
 		var=$(( ${aseq:-0} + 1 ))
 		export -- "SEQ_$cur=$var"
 	else
-		local name="$(echo -n "$var" | tr -C '[a-zA-Z_]' _)"
+		local name="$(echo -n "$var" | tr -C '[a-zA-Z0-9_]' _)"
 		[[ "$name" == "$var" ]] || export -- "NAME_${cur}_${name}=$var"
 		var="$name"
 	fi
