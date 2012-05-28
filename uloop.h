@@ -21,6 +21,7 @@
 #define _ULOOP_H__
 
 #include <sys/time.h>
+#include <sys/types.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <signal.h>
