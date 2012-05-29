@@ -24,7 +24,7 @@ json_add_generic() {
 		var=$(( ${aseq:-0} + 1 ))
 		export -- "SEQ_$cur=$var"
 	else
-		local name="$(echo -n "$var" | tr -C '[a-zA-Z0-9_]' _)"
+		local name="${var//[^a-zA-Z0-9_]/_}"
 		[[ "$name" == "$var" ]] || export -- "NAME_${cur}_${name}=$var"
 		var="$name"
 	fi
@@ -94,14 +94,14 @@ json_dump() {
 
 json_get_type() {
 	local dest="$1"
-	local var="$2"
-	eval "export -- \"$dest=\${TYPE_${JSON_CUR}_$var}\""
+	local var="TYPE_${JSON_CUR}_$2"
+	eval "[ -n \"\${$var+x}\" ] && export -- \"$dest=\${$var}\""
 }
 
 json_get_var() {
 	local dest="$1"
-	local var="$(echo -n "$2" | tr -C '[a-zA-Z0-9_]' _)"
-	eval "export -- \"$dest=\${${JSON_CUR}_$var}\""
+	local var="${JSON_CUR}_${2//[^a-zA-Z0-9_]/_}"
+	eval "[ -n \"\${$var+x}\" ] && export -- \"$dest=\${$var}\""
 }
 
 json_get_vars() {
@@ -117,11 +117,11 @@ json_select() {
 
 	[ -z "$1" ] && {
 		JSON_CUR="JSON_VAR"
-		return
+		return 0
 	}
 	[[ "$1" == ".." ]] && {
 		eval "JSON_CUR=\"\${UP_$JSON_CUR}\""
-		return;
+		return 0
 	}
 	json_get_type type "$target"
 	case "$type" in
@@ -130,6 +130,7 @@ json_select() {
 		;;
 		*)
 			echo "WARNING: Variable '$target' does not exist or is not an array/object"
+			return 1
 		;;
 	esac
 }
