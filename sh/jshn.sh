@@ -95,13 +95,13 @@ json_dump() {
 json_get_type() {
 	local dest="$1"
 	local var="TYPE_${JSON_CUR}_$2"
-	eval "[ -n \"\${$var+x}\" ] && export -- \"$dest=\${$var}\""
+	eval "export -- \"$dest=\${$var}\"; [ -n \"\${$var+x}\" ]"
 }
 
 json_get_var() {
 	local dest="$1"
 	local var="${JSON_CUR}_${2//[^a-zA-Z0-9_]/_}"
-	eval "[ -n \"\${$var+x}\" ] && export -- \"$dest=\${$var}\""
+	eval "export -- \"$dest=\${$var}\"; [ -n \"\${$var+x}\" ]"
 }
 
 json_get_vars() {
