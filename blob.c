@@ -243,3 +243,17 @@ blob_attr_equal(const struct blob_attr *a1, const struct blob_attr *a2)
 
 	return !memcmp(a1, a2, blob_pad_len(a1));
 }
+
+struct blob_attr *
+blob_memdup(struct blob_attr *attr)
+{
+	struct blob_attr *ret;
+	int size = blob_pad_len(attr);
+
+	ret = malloc(size);
+	if (!ret)
+		return NULL;
+
+	memcpy(ret, attr, size);
+	return ret;
+}
