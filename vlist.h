@@ -14,6 +14,9 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+#ifndef __LIBUBOX_VLIST_H
+#define __LIBUBOX_VLIST_H
+
 #include "avl.h"
 
 struct vlist_tree;
@@ -56,3 +59,4 @@ void vlist_flush_all(struct vlist_tree *tree);
 #define vlist_for_each_element(tree, element, node_member) \
 	avl_for_each_element(&(tree)->avl, element, node_member.avl)
 
+#endif
