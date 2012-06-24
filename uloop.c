@@ -201,22 +201,35 @@ static int register_poll(struct uloop_fd *fd, unsigned int flags)
 	return epoll_ctl(poll_fd, op, fd->fd, &ev);
 }
 
+static int cur_fd, cur_nfds;
+static struct epoll_event events[ULOOP_MAX_EVENTS];
+
 int uloop_fd_delete(struct uloop_fd *sock)
 {
+	int i;
+
+	for (i = cur_fd + 1; i < cur_nfds; i++) {
+		if (events[i].data.ptr != sock)
+			continue;
+
+		events[i].data.ptr = NULL;
+	}
 	sock->registered = false;
 	return epoll_ctl(poll_fd, EPOLL_CTL_DEL, sock->fd, 0);
 }
 
 static void uloop_run_events(int timeout)
 {
-	struct epoll_event events[ULOOP_MAX_EVENTS];
-	int nfds, n;
+	int n, nfds;
 
 	nfds = epoll_wait(poll_fd, events, ARRAY_SIZE(events), timeout);
 	for(n = 0; n < nfds; ++n)
 	{
 		struct uloop_fd *u = events[n].data.ptr;
 		unsigned int ev = 0;
+
+		if (!u)
+			continue;
 
 		if(events[n].events & EPOLLERR) {
 			u->error = true;
@@ -235,9 +248,13 @@ static void uloop_run_events(int timeout)
 		if(events[n].events & EPOLLOUT)
 			ev |= ULOOP_WRITE;
 
-		if(u->cb)
+		if(u->cb) {
+			cur_fd = n;
+			cur_nfds = nfds;
 			u->cb(u, ev);
+		}
 	}
+	cur_nfds = 0;
 }
 
 #endif
