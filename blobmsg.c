@@ -61,6 +61,22 @@ bool blobmsg_check_attr(const struct blob_attr *attr, bool name)
 	return blob_check_type(data, len, blob_type[id]);
 }
 
+bool blobmsg_check_attr_list(const struct blob_attr *attr, int type, bool name)
+{
+	struct blob_attr *cur;
+	int rem;
+
+	blobmsg_for_each_attr(cur, attr, rem) {
+		if (blobmsg_type(cur) != type)
+			return false;
+
+		if (!blobmsg_check_attr(cur, name))
+			return false;
+	}
+
+	return true;
+}
+
 int blobmsg_parse(const struct blobmsg_policy *policy, int policy_len,
                   struct blob_attr **tb, void *data, int len)
 {
