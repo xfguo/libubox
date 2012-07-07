@@ -231,12 +231,12 @@ static void uloop_run_events(int timeout)
 		if (!u)
 			continue;
 
-		if(events[n].events & EPOLLERR) {
+		if(events[n].events & (EPOLLERR|EPOLLHUP)) {
 			u->error = true;
 			uloop_fd_delete(u);
 		}
 
-		if(!(events[n].events & (EPOLLRDHUP|EPOLLIN|EPOLLOUT|EPOLLERR)))
+		if(!(events[n].events & (EPOLLRDHUP|EPOLLIN|EPOLLOUT|EPOLLERR|EPOLLHUP)))
 			continue;
 
 		if(events[n].events & EPOLLRDHUP)
