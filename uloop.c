@@ -455,6 +455,22 @@ static void uloop_process_timeouts(struct timeval *tv)
 	}
 }
 
+static void uloop_clear_timeouts(void)
+{
+	struct uloop_timeout *t, *tmp;
+
+	list_for_each_entry_safe(t, tmp, &timeouts, list)
+		uloop_timeout_cancel(t);
+}
+
+static void uloop_clear_processes(void)
+{
+	struct uloop_process *p, *tmp;
+
+	list_for_each_entry_safe(p, tmp, &processes, list)
+		uloop_process_delete(p);
+}
+
 void uloop_run(void)
 {
 	struct timeval tv;
@@ -480,4 +496,7 @@ void uloop_done(void)
 
 	close(poll_fd);
 	poll_fd = -1;
+
+	uloop_clear_timeouts();
+	uloop_clear_processes();
 }
