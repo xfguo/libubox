@@ -3,6 +3,8 @@ cmake_minimum_required(VERSION 2.6)
 PROJECT(ubox C)
 ADD_DEFINITIONS(-Os -Wall -Werror --std=gnu99 -g3)
 
+OPTION(BUILD_LUA "build Lua plugin" ON)
+
 IF(APPLE)
   INCLUDE_DIRECTORIES(/opt/local/include)
   LINK_DIRECTORIES(/opt/local/lib)
@@ -21,6 +23,8 @@ INSTALL(FILES ${headers}
 INSTALL(TARGETS ubox
 	LIBRARY DESTINATION lib
 )
+
+ADD_SUBDIRECTORY(lua)
 
 find_library(json json)
 IF(EXISTS ${json})
