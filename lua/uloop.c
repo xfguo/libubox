@@ -126,7 +126,7 @@ static int ul_timer(lua_State *L)
 	return 1;
 }
 
-static void proc_cb(struct uloop_process *p, int ret)
+static void ul_process_cb(struct uloop_process *p, int ret)
 {
 	struct lua_uloop_process *proc = container_of(p, struct lua_uloop_process, p);
 
@@ -196,7 +196,7 @@ static int ul_process(lua_State *L)
 
 	proc->r = ref;
 	proc->p.pid = pid;
-	proc->p.cb = proc_cb;
+	proc->p.cb = ul_process_cb;
 	uloop_process_add(&proc->p);
 
 	return 1;
