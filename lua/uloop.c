@@ -22,8 +22,8 @@
 #include <lualib.h>
 #include <lauxlib.h>
 
-#include <libubox/uloop.h>
-#include <libubox/list.h>
+#include "../uloop.h"
+#include "../list.h"
 
 struct lua_uloop_timeout {
 	struct uloop_timeout t;
