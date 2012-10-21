@@ -54,6 +54,7 @@ static int poll_fd = -1;
 bool uloop_cancelled = false;
 bool uloop_handle_sigchld = true;
 static bool do_sigchld = false;
+static int cur_fd, cur_nfds;
 
 #ifdef USE_KQUEUE
 
@@ -84,12 +85,15 @@ static uint16_t get_flags(unsigned int flags, unsigned int mask)
 	return kflags;
 }
 
+static struct kevent events[ULOOP_MAX_EVENTS];
+
 static int register_poll(struct uloop_fd *fd, unsigned int flags)
 {
 	struct timespec timeout = { 0, 0 };
 	struct kevent ev[2];
 	unsigned int changed;
 	int nev = 0;
+	unsigned int fl = 0;
 
 	changed = fd->kqflags ^ flags;
 	if (changed & ULOOP_EDGE_TRIGGER)
@@ -105,7 +109,10 @@ static int register_poll(struct uloop_fd *fd, unsigned int flags)
 		EV_SET(&ev[nev++], fd->fd, EVFILT_WRITE, kflags, 0, 0, fd);
 	}
 
-	if (nev && (kevent(poll_fd, ev, nev, NULL, 0, &timeout) == -1))
+	if (!flags)
+		fl |= EV_DELETE;
+
+	if (nev && (kevent(poll_fd, ev, nev, NULL, fl, &timeout) == -1))
 		return -1;
 
 	fd->kqflags = flags;
@@ -114,13 +121,21 @@ static int register_poll(struct uloop_fd *fd, unsigned int flags)
 
 int uloop_fd_delete(struct uloop_fd *sock)
 {
+	int i;
+
+	for (i = cur_fd + 1; i < cur_nfds; i++) {
+		if (events[i].udata != sock)
+			continue;
+
+		events[i].udata = NULL;
+	}
+
 	sock->registered = false;
 	return register_poll(sock, 0);
 }
 
 static void uloop_run_events(int timeout)
 {
-	struct kevent events[ULOOP_MAX_EVENTS];
 	struct timespec ts;
 	int nfds, n;
 
@@ -135,7 +150,10 @@ static void uloop_run_events(int timeout)
 		struct uloop_fd *u = events[n].udata;
 		unsigned int ev = 0;
 
-		if(events[n].flags & EV_ERROR) {
+		if (!u)
+			continue;
+
+		if (events[n].flags & EV_ERROR) {
 			u->error = true;
 			uloop_fd_delete(u);
 		}
@@ -145,14 +163,18 @@ static void uloop_run_events(int timeout)
 		else if (events[n].filter == EVFILT_WRITE)
 			ev |= ULOOP_WRITE;
 
-		if(events[n].flags & EV_EOF)
+		if (events[n].flags & EV_EOF)
 			u->eof = true;
 		else if (!ev)
 			continue;
 
-		if(u->cb)
+		if (u->cb) {
+			cur_fd = n;
+			cur_nfds = nfds;
 			u->cb(u, ev);
+		}
 	}
+	cur_nfds = 0;
 }
 
 #endif
@@ -201,7 +223,6 @@ static int register_poll(struct uloop_fd *fd, unsigned int flags)
 	return epoll_ctl(poll_fd, op, fd->fd, &ev);
 }
 
-static int cur_fd, cur_nfds;
 static struct epoll_event events[ULOOP_MAX_EVENTS];
 
 int uloop_fd_delete(struct uloop_fd *sock)
