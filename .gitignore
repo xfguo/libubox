@@ -7,3 +7,4 @@ CMakeFiles
 *.dylib
 install_manifest.txt
 jshn
+*-example
