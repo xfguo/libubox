@@ -10,7 +10,7 @@ IF(APPLE)
   LINK_DIRECTORIES(/opt/local/lib)
 ENDIF()
 
-SET(SOURCES avl.c avl-cmp.c blob.c blobmsg.c uloop.c usock.c vlist.c)
+SET(SOURCES avl.c avl-cmp.c blob.c blobmsg.c uloop.c usock.c ustream.c ustream-fd.c vlist.c)
 
 ADD_LIBRARY(ubox SHARED ${SOURCES})
 
