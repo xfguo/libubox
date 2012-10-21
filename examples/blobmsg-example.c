@@ -1,6 +1,7 @@
 #include <stdio.h>
 
 #include "blobmsg.h"
+#include "blobmsg_json.h"
 
 static const char *indent_str = "\t\t\t\t\t\t\t\t\t\t\t\t\t";
 
@@ -128,7 +129,7 @@ int main(int argc, char **argv)
 	blobmsg_buf_init(&buf);
 	fill_message(&buf);
 	dump_message(&buf);
-	fprintf(stderr, "json: %s\n", blobmsg_format_json(buf.head, false), true);
+	fprintf(stderr, "json: %s\n", blobmsg_format_json(buf.head, false));
 
 	if (buf.buf)
 		free(buf.buf);
