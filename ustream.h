@@ -19,6 +19,7 @@
 #ifndef __USTREAM_H
 #define __USTREAM_H
 
+#include <stdarg.h>
 #include "uloop.h"
 
 struct ustream;
