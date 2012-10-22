@@ -24,7 +24,7 @@
 
 #include "ustream.h"
 
-void ustream_init_buf(struct ustream_buf *buf, int len)
+static void ustream_init_buf(struct ustream_buf *buf, int len)
 {
 	if (!len)
 		abort();
