@@ -49,6 +49,7 @@ struct ustream_buf_list {
 struct ustream {
 	struct ustream_buf_list r, w;
 	struct uloop_timeout state_change;
+	struct ustream *next;
 
 	/*
 	 * notify_read:
