@@ -226,6 +226,10 @@ static luaL_reg uloop_func[] = {
 	{NULL, NULL},
 };
 
+/* avoid warnings about missing declarations */
+int luaopen_uloop(lua_State *L);
+int luaclose_uloop(lua_State *L);
+
 int luaopen_uloop(lua_State *L)
 {
 	state = L;
