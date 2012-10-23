@@ -464,9 +464,11 @@ static int uloop_get_next_timeout(struct timeval *tv)
 
 static void uloop_process_timeouts(struct timeval *tv)
 {
-	struct uloop_timeout *t, *tmp;
+	struct uloop_timeout *t;
 
-	list_for_each_entry_safe(t, tmp, &timeouts, list) {
+	while (!list_empty(&timeouts)) {
+		t = list_first_entry(&timeouts, struct uloop_timeout, list);
+
 		if (tv_diff(&t->time, tv) > 0)
 			break;
 
