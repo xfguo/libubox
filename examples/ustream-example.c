@@ -42,7 +42,7 @@ static void client_read_cb(struct ustream *s, int bytes)
 		cl->ctr += newline + 1 - str;
 	} while(1);
 
-	if (s->w.data_bytes > 256 && ustream_read_blocked(s)) {
+	if (s->w.data_bytes > 256 && !ustream_read_blocked(s)) {
 		fprintf(stderr, "Block read, bytes: %d\n", s->w.data_bytes);
 		ustream_set_read_blocked(s, true);
 	}
