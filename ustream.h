@@ -52,7 +52,7 @@ struct ustream {
 	struct ustream *next;
 
 	/*
-	 * notify_read:
+	 * notify_read: (optional)
 	 * called by the ustream core to notify that new data is available
 	 * for reading.
 	 * must not free the ustream from this callback
