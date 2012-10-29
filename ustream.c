@@ -104,7 +104,8 @@ static void ustream_state_change_cb(struct uloop_timeout *t)
 
 	if (s->write_error)
 		ustream_free_buffers(&s->w);
-	s->notify_state(s);
+	if (s->notify_state)
+		s->notify_state(s);
 }
 
 void ustream_init_defaults(struct ustream *s)

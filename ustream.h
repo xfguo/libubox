@@ -68,7 +68,7 @@ struct ustream {
 	void (*notify_write)(struct ustream *s, int bytes);
 
 	/*
-	 * notify_state:
+	 * notify_state: (optional)
 	 * called by the ustream implementation to notify that the read
 	 * side of the stream is closed (eof is set) or there was a write
 	 * error (write_error is set).
