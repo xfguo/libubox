@@ -403,7 +403,7 @@ static int ustream_write_buffered(struct ustream *s, const char *data, int len, 
 int ustream_write(struct ustream *s, const char *data, int len, bool more)
 {
 	struct ustream_buf_list *l = &s->w;
-	int wr;
+	int wr = 0;
 
 	if (s->write_error)
 		return 0;
