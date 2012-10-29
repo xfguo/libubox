@@ -101,6 +101,14 @@ struct ustream {
 	void (*set_read_blocked)(struct ustream *s);
 
 	/*
+	 * poll: (optional)
+	 * defined by the upstream implementation, called to request polling for
+	 * available data.
+	 * returns true if data was fetched.
+	 */
+	bool (*poll)(struct ustream *s);
+
+	/*
 	 * ustream user should set this if the input stream is expected
 	 * to contain string data. the core will keep all data 0-terminated.
 	 */
@@ -180,6 +188,14 @@ bool ustream_write_pending(struct ustream *s);
 static inline void ustream_state_change(struct ustream *s)
 {
 	uloop_timeout_set(&s->state_change, 0);
+}
+
+static inline bool ustream_poll(struct ustream *s)
+{
+	if (!s->poll)
+		return false;
+
+	return s->poll(s);
 }
 
 #endif

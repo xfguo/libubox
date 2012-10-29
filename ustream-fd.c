@@ -40,7 +40,7 @@ static void ustream_fd_set_uloop(struct ustream *s)
 		sf->fd.cb(&sf->fd, ULOOP_READ);
 }
 
-static void ustream_fd_read_pending(struct ustream_fd *sf, bool *update)
+static void ustream_fd_read_pending(struct ustream_fd *sf, bool *more)
 {
 	struct ustream *s = &sf->stream;
 	int buflen = 0;
@@ -67,6 +67,7 @@ static void ustream_fd_read_pending(struct ustream_fd *sf, bool *update)
 		}
 
 		ustream_fill_read(s, len);
+		*more = true;
 	} while (1);
 }
 
@@ -94,14 +95,14 @@ retry:
 	return len;
 }
 
-static void ustream_uloop_cb(struct uloop_fd *fd, unsigned int events)
+static bool __ustream_fd_poll(struct ustream_fd *sf, unsigned int events)
 {
-	struct ustream_fd *sf = container_of(fd, struct ustream_fd, fd);
 	struct ustream *s = &sf->stream;
-	bool update = false;
+	struct uloop_fd *fd = &sf->fd;
+	bool more = false;
 
 	if (events & ULOOP_READ)
-		ustream_fd_read_pending(sf, &update);
+		ustream_fd_read_pending(sf, &more);
 
 	if (events & ULOOP_WRITE) {
 		if (ustream_write_pending(s))
@@ -113,8 +114,23 @@ static void ustream_uloop_cb(struct uloop_fd *fd, unsigned int events)
 		ustream_fd_set_uloop(s);
 		ustream_state_change(s);
 	}
+
+	return more;
 }
 
+static bool ustream_fd_poll(struct ustream *s)
+{
+	struct ustream_fd *sf = container_of(s, struct ustream_fd, stream);
+
+	return __ustream_fd_poll(sf, ULOOP_READ);
+}
+
+static void ustream_uloop_cb(struct uloop_fd *fd, unsigned int events)
+{
+	struct ustream_fd *sf = container_of(fd, struct ustream_fd, fd);
+
+	__ustream_fd_poll(sf, events);
+}
 
 static void ustream_fd_free(struct ustream *s)
 {
@@ -134,5 +150,6 @@ void ustream_fd_init(struct ustream_fd *sf, int fd)
 	s->set_read_blocked = ustream_fd_set_uloop;
 	s->write = ustream_fd_write;
 	s->free = ustream_fd_free;
+	s->poll = ustream_fd_poll;
 	ustream_fd_set_uloop(s);
 }
