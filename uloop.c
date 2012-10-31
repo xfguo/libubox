@@ -345,7 +345,7 @@ int uloop_timeout_set(struct uloop_timeout *timeout, int msecs)
 
 	if (time->tv_usec > 1000000) {
 		time->tv_sec++;
-		time->tv_usec %= 100000;
+		time->tv_usec %= 1000000;
 	}
 
 	return uloop_timeout_add(timeout);
