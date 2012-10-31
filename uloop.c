@@ -304,10 +304,9 @@ out:
 
 static int tv_diff(struct timeval *t1, struct timeval *t2)
 {
-	if (t1->tv_sec != t2->tv_sec)
-		return (t1->tv_sec - t2->tv_sec) * 1000;
-	else
-		return (t1->tv_usec - t2->tv_usec) / 1000;
+	return
+		(t1->tv_sec - t2->tv_sec) * 1000 +
+		(t1->tv_usec - t2->tv_usec) / 1000;
 }
 
 int uloop_timeout_add(struct uloop_timeout *timeout)
