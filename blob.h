@@ -26,8 +26,6 @@
 #include <stdio.h>
 #include <errno.h>
 
-#if __BYTE_ORDER == __LITTLE_ENDIAN
-
 #if defined(__linux__) || defined(__CYGWIN__)
 #include <byteswap.h>
 #include <endian.h>
@@ -59,6 +57,8 @@
 #ifndef __LITTLE_ENDIAN
 #define __LITTLE_ENDIAN LITTLE_ENDIAN
 #endif
+
+#if __BYTE_ORDER == __LITTLE_ENDIAN
 
 #define cpu_to_be64(x) bswap_64(x)
 #define cpu_to_be32(x) bswap_32(x)
