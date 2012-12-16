@@ -52,12 +52,12 @@ _set_var() {
 _json_inc() {
 	local _var="$1"
 	local _dest="$2"
-	local seq
+	local _seq
 
-	_json_get_var seq "$_var"
-	seq="$((${seq:-0} + 1))"
-	_json_set_var "$_var" "$seq"
-	[ -n "$dest" ] && _set_var "$_dest" "$seq"
+	_json_get_var _seq "$_var"
+	_seq="$((${_seq:-0} + 1))"
+	_json_set_var "$_var" "$_seq"
+	[ -n "$_dest" ] && _set_var "$_dest" "$_seq"
 }
 
 _json_stack_push() {
@@ -95,6 +95,7 @@ _json_add_table() {
 	local type="$2"
 	local itype="$3"
 	local cur new_cur
+	local seq
 
 	_json_get_var cur JSON_CUR
 	_json_inc JSON_SEQ seq
@@ -102,11 +103,11 @@ _json_add_table() {
 	local table="JSON_$itype$seq"
 	_json_export "UP_$table" "$cur"
 	_json_export "KEYS_$table" ""
-	[ "$TYPE" = "ARRAY" ] && _json_export "KEYS_$table" ""
+	[ "$TYPE" = "ARRAY" ] && _json_export "SEQ_$table" ""
 	_json_stack_push "$table"
 
 	_json_get_var new_cur JSON_CUR
-	_json_add_generic object "$1" "$new_cur" "$cur"
+	_json_add_generic "$type" "$1" "$new_cur" "$cur"
 }
 
 _json_close_table() {
