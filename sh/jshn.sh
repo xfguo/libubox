@@ -113,7 +113,7 @@ _json_close_table() {
 	local stack new_stack
 
 	_json_get_var stack JSON_STACK
-	_json_set_var cur "${JSON_STACK##* }"
+	_json_set_var JSON_CUR "${stack##* }"
 	new_stack="${stack% *}"
 	[[ "$stack" == "$new_stack" ]] && new_stack=
 	_json_set_var JSON_STACK "$new_stack"
@@ -219,19 +219,23 @@ json_get_vars() {
 json_select() {
 	local target="$1"
 	local type
+	local cur
 
 	[ -z "$1" ] && {
 		_json_set_var JSON_CUR "JSON_VAR"
 		return 0
 	}
 	[[ "$1" == ".." ]] && {
-		eval "JSON_CUR=\"\${UP_$JSON_CUR}\""
+		_json_get_var cur JSON_CUR
+		_json_get_var cur "UP_$cur"
+		_json_set_var JSON_CUR "$cur"
 		return 0
 	}
 	json_get_type type "$target"
 	case "$type" in
 		object|array)
-			_json_get_var JSON_CUR "$target"
+			json_get_var cur "$target"
+			_json_set_var JSON_CUR "$cur"
 		;;
 		*)
 			echo "WARNING: Variable '$target' does not exist or is not an array/object"
