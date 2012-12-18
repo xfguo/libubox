@@ -103,7 +103,7 @@ _json_add_table() {
 	local table="JSON_$itype$seq"
 	_json_export "UP_$table" "$cur"
 	_json_export "KEYS_$table" ""
-	[ "$TYPE" = "ARRAY" ] && _json_export "SEQ_$table" ""
+	[ "$itype" = "ARRAY" ] && _json_export "SEQ_$table" ""
 	_json_stack_push "$table"
 
 	_json_get_var new_cur JSON_CUR
