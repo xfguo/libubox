@@ -163,6 +163,11 @@ static inline bool ustream_read_blocked(struct ustream *s)
 	return !!(s->read_blocked & READ_BLOCKED_USER);
 }
 
+static inline bool ustream_read_buf_full(struct ustream *s)
+{
+	return s->r.data_bytes == s->r.buffer_len;
+}
+
 /*** --- functions only used by ustream implementations --- ***/
 
 /* ustream_init_defaults: fill default callbacks and options */
