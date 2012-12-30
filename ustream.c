@@ -435,6 +435,9 @@ int ustream_vprintf(struct ustream *s, const char *format, va_list arg)
 	va_list arg2;
 	int wr, maxlen, buflen;
 
+	if (s->write_error)
+		return 0;
+
 	if (!l->data_bytes) {
 		buf = alloca(MAX_STACK_BUFLEN);
 		va_copy(arg2, arg);
@@ -492,6 +495,9 @@ int ustream_printf(struct ustream *s, const char *format, ...)
 {
 	va_list arg;
 	int ret;
+
+	if (s->write_error)
+		return 0;
 
 	va_start(arg, format);
 	ret = ustream_vprintf(s, format, arg);
