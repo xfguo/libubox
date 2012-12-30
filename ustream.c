@@ -379,7 +379,6 @@ static int ustream_write_buffered(struct ustream *s, const char *data, int len, 
 	struct ustream_buf_list *l = &s->w;
 	struct ustream_buf *buf;
 	int maxlen;
-	bool has_data = !!s->w.data_bytes;
 
 	while (len) {
 		if (!ustream_prepare_buf(s, &s->w, len))
@@ -398,9 +397,6 @@ static int ustream_write_buffered(struct ustream *s, const char *data, int len, 
 		wr += maxlen;
 		l->data_bytes += maxlen;
 	}
-
-	if (s->poll && !has_data)
-		s->poll(s);
 
 	return wr;
 }

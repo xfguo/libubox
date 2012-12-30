@@ -21,7 +21,7 @@
 #include <stdio.h>
 #include "ustream.h"
 
-static void ustream_fd_set_uloop(struct ustream *s)
+static void ustream_fd_set_uloop(struct ustream *s, bool write)
 {
 	struct ustream_fd *sf = container_of(s, struct ustream_fd, stream);
 	struct ustream_buf *buf;
@@ -31,13 +31,18 @@ static void ustream_fd_set_uloop(struct ustream *s)
 		flags |= ULOOP_READ;
 
 	buf = s->w.head;
-	if (buf && s->w.data_bytes && !s->write_error)
+	if (write || (buf && s->w.data_bytes && !s->write_error))
 		flags |= ULOOP_WRITE;
 
 	uloop_fd_add(&sf->fd, flags);
 
 	if (flags & ULOOP_READ)
 		sf->fd.cb(&sf->fd, ULOOP_READ);
+}
+
+static void ustream_fd_set_read_blocked(struct ustream *s)
+{
+	ustream_fd_set_uloop(s, false);
 }
 
 static void ustream_fd_read_pending(struct ustream_fd *sf, bool *more)
@@ -89,8 +94,11 @@ retry:
 			goto retry;
 
 		if (errno == EAGAIN || errno == EWOULDBLOCK)
-			return 0;
+			len = 0;
 	}
+
+	if (len >= 0 && len < buflen)
+		ustream_fd_set_uloop(s, true);
 
 	return len;
 }
@@ -106,12 +114,12 @@ static bool __ustream_fd_poll(struct ustream_fd *sf, unsigned int events)
 
 	if (events & ULOOP_WRITE) {
 		if (!ustream_write_pending(s))
-			ustream_fd_set_uloop(s);
+			ustream_fd_set_uloop(s, false);
 	}
 
 	if (!s->eof && fd->eof) {
 		s->eof = true;
-		ustream_fd_set_uloop(s);
+		ustream_fd_set_uloop(s, false);
 		ustream_state_change(s);
 	}
 
@@ -147,9 +155,9 @@ void ustream_fd_init(struct ustream_fd *sf, int fd)
 
 	sf->fd.fd = fd;
 	sf->fd.cb = ustream_uloop_cb;
-	s->set_read_blocked = ustream_fd_set_uloop;
+	s->set_read_blocked = ustream_fd_set_read_blocked;
 	s->write = ustream_fd_write;
 	s->free = ustream_fd_free;
 	s->poll = ustream_fd_poll;
-	ustream_fd_set_uloop(s);
+	ustream_fd_set_uloop(s, false);
 }
