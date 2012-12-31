@@ -30,7 +30,7 @@
  * the last argument needs to be a NULL pointer
  */
 
-#define calloc_a(len, ...) __calloc_a(len, ##__VA_ARGS__)
+#define calloc_a(len, ...) __calloc_a(len, ##__VA_ARGS__, NULL)
 
 void *__calloc_a(size_t len, ...);
 
