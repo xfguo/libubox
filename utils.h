@@ -34,4 +34,8 @@
 
 void *__calloc_a(size_t len, ...);
 
+#ifndef ARRAY_SIZE
+#define ARRAY_SIZE(arr) (sizeof(arr) / sizeof((arr)[0]))
+#endif
+
 #endif

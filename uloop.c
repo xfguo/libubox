@@ -32,6 +32,7 @@
 #include <stdbool.h>
 
 #include "uloop.h"
+#include "utils.h"
 
 #ifdef USE_KQUEUE
 #include <sys/event.h>
@@ -41,10 +42,6 @@
 #endif
 #include <sys/wait.h>
 
-
-#ifndef ARRAY_SIZE
-#define ARRAY_SIZE(arr) (sizeof(arr) / sizeof((arr)[0]))
-#endif
 #define ULOOP_MAX_EVENTS 10
 
 static struct list_head timeouts = LIST_HEAD_INIT(timeouts);
