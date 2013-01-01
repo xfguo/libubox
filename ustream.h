@@ -163,9 +163,15 @@ static inline bool ustream_read_blocked(struct ustream *s)
 	return !!(s->read_blocked & READ_BLOCKED_USER);
 }
 
+static inline int ustream_pending_data(struct ustream *s, bool write)
+{
+	struct ustream_buf_list *b = write ? &s->w : &s->r;
+	return b->data_bytes;
+}
+
 static inline bool ustream_read_buf_full(struct ustream *s)
 {
-	return s->r.data_bytes == s->r.buffer_len;
+	return ustream_pending_data(s, false) == s->r.buffer_len;
 }
 
 /*** --- functions only used by ustream implementations --- ***/
