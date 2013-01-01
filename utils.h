@@ -38,4 +38,18 @@ void *__calloc_a(size_t len, ...);
 #define ARRAY_SIZE(arr) (sizeof(arr) / sizeof((arr)[0]))
 #endif
 
+#define __BUILD_BUG_ON(condition) ((void)sizeof(char[1 - 2*!!(condition)]))
+
+#ifdef __OPTIMIZE__
+extern int __BUILD_BUG_ON_CONDITION_FAILED;
+#define BUILD_BUG_ON(condition)					\
+	do {							\
+		__BUILD_BUG_ON(condition);			\
+		if (condition)					\
+			__BUILD_BUG_ON_CONDITION_FAILED = 1;	\
+	} while(0)
+#else
+#define BUILD_BUG_ON __BUILD_BUG_ON
+#endif
+
 #endif
