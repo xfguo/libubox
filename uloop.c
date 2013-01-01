@@ -136,12 +136,12 @@ static void uloop_run_events(int timeout)
 	struct timespec ts;
 	int nfds, n;
 
-	if (timeout > 0) {
+	if (timeout >= 0) {
 		ts.tv_sec = timeout / 1000;
 		ts.tv_nsec = (timeout % 1000) * 1000000;
 	}
 
-	nfds = kevent(poll_fd, NULL, 0, events, ARRAY_SIZE(events), timeout > 0 ? &ts : NULL);
+	nfds = kevent(poll_fd, NULL, 0, events, ARRAY_SIZE(events), timeout >= 0 ? &ts : NULL);
 	for(n = 0; n < nfds; ++n)
 	{
 		struct uloop_fd *u = events[n].udata;
