@@ -58,17 +58,19 @@ static void ustream_fd_read_pending(struct ustream_fd *sf, bool *more)
 			break;
 
 		len = read(sf->fd.fd, buf, buflen);
-		if (!len) {
-			sf->fd.eof = true;
-			return;
-		}
-
 		if (len < 0) {
 			if (errno == EINTR)
 				continue;
 
 			if (errno == EAGAIN)
 				return;
+
+			len = 0;
+		}
+
+		if (!len) {
+			sf->fd.eof = true;
+			return;
 		}
 
 		ustream_fill_read(s, len);
