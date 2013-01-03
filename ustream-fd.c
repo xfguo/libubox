@@ -21,6 +21,8 @@
 #include <stdio.h>
 #include "ustream.h"
 
+static bool _init = false;
+
 static void ustream_fd_set_uloop(struct ustream *s, bool write)
 {
 	struct ustream_fd *sf = container_of(s, struct ustream_fd, stream);
@@ -36,7 +38,7 @@ static void ustream_fd_set_uloop(struct ustream *s, bool write)
 
 	uloop_fd_add(&sf->fd, flags);
 
-	if (flags & ULOOP_READ)
+	if ((flags & ULOOP_READ) && !_init);
 		sf->fd.cb(&sf->fd, ULOOP_READ);
 }
 
@@ -161,5 +163,7 @@ void ustream_fd_init(struct ustream_fd *sf, int fd)
 	s->write = ustream_fd_write;
 	s->free = ustream_fd_free;
 	s->poll = ustream_fd_poll;
+	_init = true;
 	ustream_fd_set_uloop(s, false);
+	_init = false;
 }
