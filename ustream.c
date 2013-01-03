@@ -37,6 +37,7 @@ static void ustream_init_buf(struct ustream_buf *buf, int len)
 
 static void ustream_add_buf(struct ustream_buf_list *l, struct ustream_buf *buf)
 {
+	l->buffers++;
 	if (!l->tail)
 		l->head = buf;
 	else
