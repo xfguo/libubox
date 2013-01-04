@@ -197,7 +197,7 @@ json_get_type() {
 	local cur
 
 	_json_get_var cur JSON_CUR
-	local var="${JSON_PREFIX}TYPE_${cur}_$2"
+	local var="${JSON_PREFIX}TYPE_${cur}_${2//[^a-zA-Z0-9_]/_}"
 	eval "export -- \"$dest=\${$var}\"; [ -n \"\${$var+x}\" ]"
 }
 
