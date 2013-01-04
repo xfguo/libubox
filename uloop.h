@@ -46,6 +46,9 @@ typedef void (*uloop_process_handler)(struct uloop_process *c, int ret);
 #define ULOOP_WRITE		(1 << 1)
 #define ULOOP_EDGE_TRIGGER	(1 << 2)
 #define ULOOP_BLOCKING		(1 << 3)
+#ifdef USE_KQUEUE
+#define ULOOP_EDGE_DEFER	(1 << 4)
+#endif
 
 struct uloop_fd
 {
@@ -54,6 +57,9 @@ struct uloop_fd
 	bool eof;
 	bool error;
 	bool registered;
+#ifdef USE_KQUEUE
+	bool flags;
+#endif
 };
 
 struct uloop_timeout

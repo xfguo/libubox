@@ -90,13 +90,16 @@ static uint16_t get_flags(unsigned int flags, unsigned int mask)
 
 static struct kevent events[ULOOP_MAX_EVENTS];
 
-static int register_poll(struct uloop_fd *fd, unsigned int flags)
+static int register_kevent(struct uloop_fd *fd, unsigned int flags)
 {
 	struct timespec timeout = { 0, 0 };
 	struct kevent ev[2];
 	int nev = 0;
 	unsigned int fl = 0;
 	uint16_t kflags;
+
+	if (flags & ULOOP_EDGE_DEFER)
+		flags &= ~ULOOP_EDGE_TRIGGER;
 
 	kflags = get_flags(flags, ULOOP_READ);
 	EV_SET(&ev[nev++], fd->fd, EVFILT_READ, kflags, 0, 0, fd);
@@ -107,10 +110,21 @@ static int register_poll(struct uloop_fd *fd, unsigned int flags)
 	if (!flags)
 		fl |= EV_DELETE;
 
-	if (nev && (kevent(poll_fd, ev, nev, NULL, fl, &timeout) == -1))
+	if (kevent(poll_fd, ev, nev, NULL, fl, &timeout) == -1)
 		return -1;
 
 	return 0;
+}
+
+static int register_poll(struct uloop_fd *fd, unsigned int flags)
+{
+	if (flags & ULOOP_EDGE_TRIGGER)
+		flags |= ULOOP_EDGE_DEFER;
+	else
+		flags &= ~ULOOP_EDGE_DEFER;
+
+	fd->flags = flags;
+	return register_kevent(fd, flags);
 }
 
 int uloop_fd_delete(struct uloop_fd *sock)
@@ -166,6 +180,10 @@ static void uloop_run_events(int timeout)
 			cur_fd = n;
 			cur_nfds = nfds;
 			u->cb(u, ev);
+			if (u->flags & ULOOP_EDGE_DEFER) {
+				u->flags &= ~ULOOP_EDGE_DEFER;
+				register_kevent(u, u->flags);
+			}
 		}
 	}
 	cur_nfds = 0;
