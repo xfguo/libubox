@@ -57,12 +57,18 @@ static int cur_fd, cur_nfds;
 
 int uloop_init(void)
 {
+	struct timespec timeout = { 0, 0 };
+	struct kevent ev = {};
+
 	if (poll_fd >= 0)
 		return 0;
 
 	poll_fd = kqueue();
 	if (poll_fd < 0)
 		return -1;
+
+	EV_SET(&ev, SIGCHLD, EVFILT_SIGNAL, EV_ADD, 0, 0, 0);
+	kevent(poll_fd, &ev, 1, NULL, 0, &timeout);
 
 	return 0;
 }
