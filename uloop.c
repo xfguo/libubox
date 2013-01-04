@@ -88,23 +88,15 @@ static int register_poll(struct uloop_fd *fd, unsigned int flags)
 {
 	struct timespec timeout = { 0, 0 };
 	struct kevent ev[2];
-	unsigned int changed;
 	int nev = 0;
 	unsigned int fl = 0;
+	uint16_t kflags;
 
-	changed = fd->kqflags ^ flags;
-	if (changed & ULOOP_EDGE_TRIGGER)
-		changed |= flags;
+	kflags = get_flags(flags, ULOOP_READ);
+	EV_SET(&ev[nev++], fd->fd, EVFILT_READ, kflags, 0, 0, fd);
 
-	if (changed & ULOOP_READ) {
-		uint16_t kflags = get_flags(flags, ULOOP_READ);
-		EV_SET(&ev[nev++], fd->fd, EVFILT_READ, kflags, 0, 0, fd);
-	}
-
-	if (changed & ULOOP_WRITE) {
-		uint16_t kflags = get_flags(flags, ULOOP_WRITE);
-		EV_SET(&ev[nev++], fd->fd, EVFILT_WRITE, kflags, 0, 0, fd);
-	}
+	kflags = get_flags(flags, ULOOP_WRITE);
+	EV_SET(&ev[nev++], fd->fd, EVFILT_WRITE, kflags, 0, 0, fd);
 
 	if (!flags)
 		fl |= EV_DELETE;
@@ -112,7 +104,6 @@ static int register_poll(struct uloop_fd *fd, unsigned int flags)
 	if (nev && (kevent(poll_fd, ev, nev, NULL, fl, &timeout) == -1))
 		return -1;
 
-	fd->kqflags = flags;
 	return 0;
 }
 

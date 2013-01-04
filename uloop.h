@@ -54,9 +54,6 @@ struct uloop_fd
 	bool eof;
 	bool error;
 	bool registered;
-#ifdef USE_KQUEUE
-	uint8_t kqflags;
-#endif
 };
 
 struct uloop_timeout
