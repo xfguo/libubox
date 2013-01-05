@@ -96,20 +96,30 @@ static int register_kevent(struct uloop_fd *fd, unsigned int flags)
 	struct kevent ev[2];
 	int nev = 0;
 	unsigned int fl = 0;
+	unsigned int changed;
 	uint16_t kflags;
 
 	if (flags & ULOOP_EDGE_DEFER)
 		flags &= ~ULOOP_EDGE_TRIGGER;
 
-	kflags = get_flags(flags, ULOOP_READ);
-	EV_SET(&ev[nev++], fd->fd, EVFILT_READ, kflags, 0, 0, fd);
+	changed = flags ^ fd->flags;
+	if (changed & ULOOP_EDGE_TRIGGER)
+		changed |= flags;
 
-	kflags = get_flags(flags, ULOOP_WRITE);
-	EV_SET(&ev[nev++], fd->fd, EVFILT_WRITE, kflags, 0, 0, fd);
+	if (changed & ULOOP_READ) {
+		kflags = get_flags(flags, ULOOP_READ);
+		EV_SET(&ev[nev++], fd->fd, EVFILT_READ, kflags, 0, 0, fd);
+	}
+
+	if (changed & ULOOP_WRITE) {
+		kflags = get_flags(flags, ULOOP_WRITE);
+		EV_SET(&ev[nev++], fd->fd, EVFILT_WRITE, kflags, 0, 0, fd);
+	}
 
 	if (!flags)
 		fl |= EV_DELETE;
 
+	fd->flags = flags;
 	if (kevent(poll_fd, ev, nev, NULL, fl, &timeout) == -1)
 		return -1;
 
@@ -123,7 +133,6 @@ static int register_poll(struct uloop_fd *fd, unsigned int flags)
 	else
 		flags &= ~ULOOP_EDGE_DEFER;
 
-	fd->flags = flags;
 	return register_kevent(fd, flags);
 }
 
