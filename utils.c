@@ -52,3 +52,43 @@ void *__calloc_a(size_t len, ...)
 
 	return ret;
 }
+
+#ifdef __APPLE__
+#include <mach/mach_time.h>
+
+static void clock_gettime_realtime(struct timespec *tv)
+{
+	struct timeval _tv;
+
+	gettimeofday(&_tv, NULL);
+	tv->tv_sec = _tv.tv_sec;
+	tv->tv_nsec = _tv.tv_usec * 1000;
+}
+
+static void clock_gettime_monotonic(struct timespec *tv)
+{
+	mach_timebase_info_data_t info;
+	float sec;
+	uint64_t val;
+
+	mach_timebase_info(&info);
+
+	val = mach_absolute_time();
+	tv->tv_nsec = (val * info.numer / info.denom) % 1000000000;
+
+	sec = val;
+	sec *= info.numer;
+	sec /= info.denom;
+	sec /= 1000000000;
+	tv->tv_sec = sec;
+}
+
+void clock_gettime(int type, struct timespec *tv)
+{
+	if (type == CLOCK_REALTIME)
+		return clock_gettime_realtime(tv);
+	else
+		return clock_gettime_monotonic(tv);
+}
+
+#endif

@@ -20,6 +20,8 @@
 #define __LIBUBOX_UTILS_H
 
 #include <sys/types.h>
+#include <sys/time.h>
+#include <time.h>
 
 /*
  * calloc_a(size_t len, [void **addr, size_t len,...], NULL)
@@ -50,6 +52,15 @@ extern int __BUILD_BUG_ON_CONDITION_FAILED;
 	} while(0)
 #else
 #define BUILD_BUG_ON __BUILD_BUG_ON
+#endif
+
+#ifdef __APPLE__
+
+#define CLOCK_REALTIME	0
+#define CLOCK_MONOTONIC	1
+
+void clock_gettime(int type, struct timespec *tv);
+
 #endif
 
 #endif
