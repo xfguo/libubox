@@ -351,6 +351,15 @@ int uloop_timeout_add(struct uloop_timeout *timeout)
 	return 0;
 }
 
+static void uloop_gettime(struct timeval *tv)
+{
+	struct timespec ts;
+
+	clock_gettime(CLOCK_MONOTONIC, &ts);
+	tv->tv_sec = ts.tv_sec;
+	tv->tv_usec = ts.tv_nsec / 1000;
+}
+
 int uloop_timeout_set(struct uloop_timeout *timeout, int msecs)
 {
 	struct timeval *time = &timeout->time;
@@ -358,7 +367,7 @@ int uloop_timeout_set(struct uloop_timeout *timeout, int msecs)
 	if (timeout->pending)
 		uloop_timeout_cancel(timeout);
 
-	gettimeofday(&timeout->time, NULL);
+	uloop_gettime(&timeout->time);
 
 	time->tv_sec += msecs / 1000;
 	time->tv_usec += (msecs % 1000) * 1000;
@@ -521,7 +530,7 @@ void uloop_run(void)
 	uloop_setup_signals();
 	while(!uloop_cancelled)
 	{
-		gettimeofday(&tv, NULL);
+		uloop_gettime(&tv);
 		uloop_process_timeouts(&tv);
 		if (uloop_cancelled)
 			break;
