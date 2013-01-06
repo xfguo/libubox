@@ -16,7 +16,7 @@
 #include "blobmsg.h"
 #include "blobmsg_json.h"
 
-static bool blobmsg_add_object(struct blob_buf *b, json_object *obj)
+bool blobmsg_add_object(struct blob_buf *b, json_object *obj)
 {
 	json_object_object_foreach(obj, key, val) {
 		if (!blobmsg_add_json_element(b, key, val))

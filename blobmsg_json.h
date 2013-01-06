@@ -20,6 +20,7 @@
 #include <stdbool.h>
 #include "blobmsg.h"
 
+bool blobmsg_add_object(struct blob_buf *b, json_object *obj);
 bool blobmsg_add_json_element(struct blob_buf *b, const char *name, json_object *obj);
 bool blobmsg_add_json_from_string(struct blob_buf *b, const char *str);
 
