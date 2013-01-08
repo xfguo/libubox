@@ -81,6 +81,8 @@ bool blobmsg_check_attr(const struct blob_attr *attr, bool name);
 bool blobmsg_check_attr_list(const struct blob_attr *attr, int type);
 int blobmsg_parse(const struct blobmsg_policy *policy, int policy_len,
                   struct blob_attr **tb, void *data, int len);
+int blobmsg_parse_array(const struct blobmsg_policy *policy, int policy_len,
+			struct blob_attr **tb, void *data, int len);
 
 int blobmsg_add_field(struct blob_buf *buf, int type, const char *name,
                       const void *data, int len);

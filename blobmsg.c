@@ -89,6 +89,33 @@ bool blobmsg_check_attr_list(const struct blob_attr *attr, int type)
 	return true;
 }
 
+int blobmsg_parse_array(const struct blobmsg_policy *policy, int policy_len,
+			struct blob_attr **tb, void *data, int len)
+{
+	struct blob_attr *attr;
+	int i = 0;
+
+	memset(tb, 0, policy_len * sizeof(*tb));
+	__blob_for_each_attr(attr, data, len) {
+		if (policy[i].type != BLOBMSG_TYPE_UNSPEC &&
+		    blob_id(attr) != policy[i].type)
+			continue;
+
+		if (!blobmsg_check_attr(attr, true))
+			return -1;
+
+		if (tb[i])
+			continue;
+
+		tb[i++] = attr;
+		if (i == policy_len)
+			break;
+	}
+
+	return 0;
+}
+
+
 int blobmsg_parse(const struct blobmsg_policy *policy, int policy_len,
                   struct blob_attr **tb, void *data, int len)
 {
