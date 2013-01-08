@@ -193,12 +193,12 @@ json_dump() {
 }
 
 json_get_type() {
-	local dest="$1"
-	local cur
+	local __dest="$1"
+	local __cur
 
-	_json_get_var cur JSON_CUR
-	local var="${JSON_PREFIX}TYPE_${cur}_${2//[^a-zA-Z0-9_]/_}"
-	eval "export -- \"$dest=\${$var}\"; [ -n \"\${$var+x}\" ]"
+	_json_get_var __cur JSON_CUR
+	local __var="${JSON_PREFIX}TYPE_${__cur}_${2//[^a-zA-Z0-9_]/_}"
+	eval "export -- \"$__dest=\${$__var}\"; [ -n \"\${$__var+x}\" ]"
 }
 
 json_get_var() {
