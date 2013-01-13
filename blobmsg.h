@@ -183,6 +183,11 @@ static inline uint64_t blobmsg_get_u64(struct blob_attr *attr)
 	return be64_to_cpu(*(uint64_t *) blobmsg_data(attr));
 }
 
+static inline char *blobmsg_get_string(struct blob_attr *attr)
+{
+	return blobmsg_data(attr);
+}
+
 void *blobmsg_alloc_string_buffer(struct blob_buf *buf, const char *name, int maxlen);
 void blobmsg_add_string_buffer(struct blob_buf *buf);
 
