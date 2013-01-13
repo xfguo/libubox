@@ -102,7 +102,7 @@ int blobmsg_parse_array(const struct blobmsg_policy *policy, int policy_len,
 		    blob_id(attr) != policy[i].type)
 			continue;
 
-		if (!blobmsg_check_attr(attr, true))
+		if (!blobmsg_check_attr(attr, false))
 			return -1;
 
 		if (tb[i])
