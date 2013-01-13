@@ -21,6 +21,7 @@ static const int blob_type[__BLOBMSG_TYPE_LAST] = {
 	[BLOBMSG_TYPE_INT32] = BLOB_ATTR_INT32,
 	[BLOBMSG_TYPE_INT64] = BLOB_ATTR_INT64,
 	[BLOBMSG_TYPE_STRING] = BLOB_ATTR_STRING,
+	[BLOBMSG_TYPE_UNSPEC] = BLOB_ATTR_BINARY,
 };
 
 static uint16_t
@@ -52,7 +53,7 @@ bool blobmsg_check_attr(const struct blob_attr *attr, bool name)
 	len = blobmsg_data_len(attr);
 	data = blobmsg_data(attr);
 
-	if (!id || id > BLOBMSG_TYPE_LAST)
+	if (id > BLOBMSG_TYPE_LAST)
 		return false;
 
 	if (!blob_type[id])
