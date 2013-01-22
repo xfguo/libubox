@@ -87,6 +87,7 @@ int uloop_fd_delete(struct uloop_fd *sock);
 int uloop_timeout_add(struct uloop_timeout *timeout);
 int uloop_timeout_set(struct uloop_timeout *timeout, int msecs);
 int uloop_timeout_cancel(struct uloop_timeout *timeout);
+int uloop_timeout_pending(struct uloop_timeout *timeout);
 
 int uloop_process_add(struct uloop_process *p);
 int uloop_process_delete(struct uloop_process *p);
