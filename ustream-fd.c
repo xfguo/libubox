@@ -83,28 +83,33 @@ static void ustream_fd_read_pending(struct ustream_fd *sf, bool *more)
 static int ustream_fd_write(struct ustream *s, const char *buf, int buflen, bool more)
 {
 	struct ustream_fd *sf = container_of(s, struct ustream_fd, stream);
-	ssize_t len;
+	ssize_t ret = 0, len;
 
 	if (!buflen)
 		return 0;
 
-retry:
-	len = write(sf->fd.fd, buf, buflen);
-	if (!len)
-		goto retry;
+	while (buflen) {
+		len = write(sf->fd.fd, buf, buflen);
 
-	if (len < 0) {
-		if (errno == EINTR)
-			goto retry;
+		if (len < 0) {
+			if (errno == EINTR)
+				continue;
 
-		if (errno == EAGAIN || errno == EWOULDBLOCK)
-			len = 0;
+			if (errno == EAGAIN || errno == EWOULDBLOCK)
+				break;
+
+			return -1;
+		}
+
+		ret += len;
+		buf += len;
+		buflen -= len;
 	}
 
-	if (len >= 0 && len < buflen)
+	if (buflen)
 		ustream_fd_set_uloop(s, true);
 
-	return len;
+	return ret;
 }
 
 static bool __ustream_fd_poll(struct ustream_fd *sf, unsigned int events)
