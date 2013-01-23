@@ -180,7 +180,10 @@ static inline uint32_t blobmsg_get_u32(struct blob_attr *attr)
 
 static inline uint64_t blobmsg_get_u64(struct blob_attr *attr)
 {
-	return be64_to_cpu(*(uint64_t *) blobmsg_data(attr));
+	uint32_t *ptr = blobmsg_data(attr);
+	uint64_t tmp = ((uint64_t) be32_to_cpu(ptr[0])) << 32;
+	tmp |= be32_to_cpu(ptr[1]);
+	return tmp;
 }
 
 static inline char *blobmsg_get_string(struct blob_attr *attr)
