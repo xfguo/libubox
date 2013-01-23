@@ -25,9 +25,6 @@ IF(NOT HAVE_GETTIME)
 	ENDIF()
 ENDIF()
 
-
-SET(CMAKE_INSTALL_PREFIX /usr)
-
 FILE(GLOB headers *.h)
 INSTALL(FILES ${headers}
 	DESTINATION include/libubox
