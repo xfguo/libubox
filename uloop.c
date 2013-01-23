@@ -387,7 +387,7 @@ int uloop_timeout_cancel(struct uloop_timeout *timeout)
 	return 0;
 }
 
-int uloop_timeout_pending(struct uloop_timeout *timeout)
+int uloop_timeout_remaining(struct uloop_timeout *timeout)
 {
 	struct timeval now;
 
