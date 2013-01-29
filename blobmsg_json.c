@@ -108,7 +108,7 @@ static bool blobmsg_puts(struct strbuf *s, const char *c, int len)
 		return true;
 
 	if (s->pos + len >= s->len) {
-		s->len += 16;
+		s->len += 16 + len;
 		s->buf = realloc(s->buf, s->len);
 		if (!s->buf)
 			return false;
