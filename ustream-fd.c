@@ -72,6 +72,8 @@ static void ustream_fd_read_pending(struct ustream_fd *sf, bool *more)
 
 		if (!len) {
 			sf->fd.eof = true;
+			ustream_state_change(s);
+			ustream_fd_set_uloop(s, false);
 			return;
 		}
 
@@ -115,7 +117,6 @@ static int ustream_fd_write(struct ustream *s, const char *buf, int buflen, bool
 static bool __ustream_fd_poll(struct ustream_fd *sf, unsigned int events)
 {
 	struct ustream *s = &sf->stream;
-	struct uloop_fd *fd = &sf->fd;
 	bool more = false;
 
 	if (events & ULOOP_READ)
@@ -124,12 +125,6 @@ static bool __ustream_fd_poll(struct ustream_fd *sf, unsigned int events)
 	if (events & ULOOP_WRITE) {
 		if (!ustream_write_pending(s))
 			ustream_fd_set_uloop(s, false);
-	}
-
-	if (!s->eof && fd->eof) {
-		s->eof = true;
-		ustream_fd_set_uloop(s, false);
-		ustream_state_change(s);
 	}
 
 	return more;
