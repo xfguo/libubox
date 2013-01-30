@@ -171,7 +171,8 @@ static inline int ustream_pending_data(struct ustream *s, bool write)
 
 static inline bool ustream_read_buf_full(struct ustream *s)
 {
-	return ustream_pending_data(s, false) == s->r.buffer_len;
+	return ustream_pending_data(s, false) == s->r.buffer_len &&
+	       s->r.buffers == s->r.max_buffers;
 }
 
 /*** --- functions only used by ustream implementations --- ***/
