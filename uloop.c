@@ -246,6 +246,9 @@ int uloop_fd_delete(struct uloop_fd *sock)
 {
 	int i;
 
+	if (!sock->registered)
+		return 0;
+
 	for (i = cur_fd + 1; i < cur_nfds; i++) {
 		if (events[i].data.ptr != sock)
 			continue;
@@ -301,6 +304,9 @@ int uloop_fd_add(struct uloop_fd *sock, unsigned int flags)
 {
 	unsigned int fl;
 	int ret;
+
+	if (!(flags & (ULOOP_READ | ULOOP_WRITE)))
+		return uloop_fd_delete(sock);
 
 	if (!sock->registered && !(flags & ULOOP_BLOCKING)) {
 		fl = fcntl(sock->fd, F_GETFL, 0);
