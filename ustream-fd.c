@@ -71,7 +71,7 @@ static void ustream_fd_read_pending(struct ustream_fd *sf, bool *more)
 		}
 
 		if (!len) {
-			sf->fd.eof = true;
+			s->eof = true;
 			ustream_state_change(s);
 			ustream_fd_set_uloop(s, false);
 			return;
