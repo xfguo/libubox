@@ -233,6 +233,23 @@ blobmsg_alloc_string_buffer(struct blob_buf *buf, const char *name, int maxlen)
 	return data_dest;
 }
 
+void *
+blobmsg_realloc_string_buffer(struct blob_buf *buf, int maxlen)
+{
+	struct blob_attr *attr = blob_next(buf->head);
+	int offset = attr_to_offset(buf, blob_next(buf->head)) + blob_pad_len(attr);
+	int required = maxlen - (buf->buflen - offset);
+
+	if (required <= 0)
+		goto out;
+
+	blob_buf_grow(buf, required);
+	attr = blob_next(buf->head);
+
+out:
+	return blobmsg_data(attr);
+}
+
 void
 blobmsg_add_string_buffer(struct blob_buf *buf)
 {

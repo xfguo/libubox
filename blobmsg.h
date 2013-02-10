@@ -192,6 +192,7 @@ static inline char *blobmsg_get_string(struct blob_attr *attr)
 }
 
 void *blobmsg_alloc_string_buffer(struct blob_buf *buf, const char *name, int maxlen);
+void *blobmsg_realloc_string_buffer(struct blob_buf *buf, int maxlen);
 void blobmsg_add_string_buffer(struct blob_buf *buf);
 
 /* blobmsg to json formatting */
