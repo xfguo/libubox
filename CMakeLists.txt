@@ -35,13 +35,13 @@ INSTALL(TARGETS ubox
 
 ADD_SUBDIRECTORY(lua)
 
-find_library(json json)
+find_library(json NAMES json-c json)
 IF(EXISTS ${json})
 	ADD_LIBRARY(blobmsg_json SHARED blobmsg_json.c)
-	TARGET_LINK_LIBRARIES(blobmsg_json ubox json)
+	TARGET_LINK_LIBRARIES(blobmsg_json ubox ${json})
 
 	ADD_EXECUTABLE(jshn jshn.c)
-	TARGET_LINK_LIBRARIES(jshn json)
+	TARGET_LINK_LIBRARIES(jshn ${json})
 
 	INSTALL(TARGETS blobmsg_json jshn
 		LIBRARY DESTINATION lib
