@@ -63,4 +63,62 @@ void clock_gettime(int type, struct timespec *tv);
 
 #endif
 
+#if defined(__linux__) || defined(__CYGWIN__)
+#include <byteswap.h>
+#include <endian.h>
+
+#elif defined(__APPLE__)
+#include <machine/endian.h>
+#include <machine/byte_order.h>
+#define bswap_16(x) OSSwapInt16(x)
+#define bswap_32(x) OSSwapInt32(x)
+#define bswap_64(x) OSSwapInt64(x)
+#elif defined(__FreeBSD__)
+#include <sys/endian.h>
+#define bswap_16(x) bswap16(x)
+#define bswap_32(x) bswap32(x)
+#define bswap_64(x) bswap64(x)
+#else
+#include <machine/endian.h>
+#define bswap_16(x) swap16(x)
+#define bswap_32(x) swap32(x)
+#define bswap_64(x) swap64(x)
+#endif
+
+#ifndef __BYTE_ORDER
+#define __BYTE_ORDER BYTE_ORDER
+#endif
+#ifndef __BIG_ENDIAN
+#define __BIG_ENDIAN BIG_ENDIAN
+#endif
+#ifndef __LITTLE_ENDIAN
+#define __LITTLE_ENDIAN LITTLE_ENDIAN
+#endif
+
+#if __BYTE_ORDER == __LITTLE_ENDIAN
+
+#define cpu_to_be64(x) bswap_64(x)
+#define cpu_to_be32(x) bswap_32(x)
+#define cpu_to_be16(x) bswap_16(x)
+
+#define be64_to_cpu(x) bswap_64(x)
+#define be32_to_cpu(x) bswap_32(x)
+#define be16_to_cpu(x) bswap_16(x)
+
+#else
+
+#define cpu_to_be64(x) (x)
+#define cpu_to_be32(x) (x)
+#define cpu_to_be16(x) (x)
+
+#define be64_to_cpu(x) (x)
+#define be32_to_cpu(x) (x)
+#define be16_to_cpu(x) (x)
+
+#endif
+
+#ifndef __packed
+#define __packed __attribute__((packed))
+#endif
+
 #endif
