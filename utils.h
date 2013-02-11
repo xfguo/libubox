@@ -21,6 +21,7 @@
 
 #include <sys/types.h>
 #include <sys/time.h>
+#include <stdint.h>
 #include <time.h>
 
 /*
@@ -63,6 +64,12 @@ void clock_gettime(int type, struct timespec *tv);
 
 #endif
 
+#ifdef __GNUC__
+#define _GNUC_MIN_VER(maj, min) (((__GNUC__ << 8) + __GNUC_MINOR__) >= (((maj) << 8) + (min)))
+#else
+#define _GNUC_MIN_VER(maj, min) 0
+#endif
+
 #if defined(__linux__) || defined(__CYGWIN__)
 #include <byteswap.h>
 #include <endian.h>
@@ -97,6 +104,20 @@ void clock_gettime(int type, struct timespec *tv);
 
 #if __BYTE_ORDER == __LITTLE_ENDIAN
 
+#if _GNUC_MIN_VER(4, 2)
+
+#define __bswap_constant_16(x) ((uint16_t)((((x) >> 8) & 0xffu) | (((x) & 0xffu) << 8)))
+
+#define cpu_to_be64(x) __builtin_bswap64(x)
+#define cpu_to_be32(x) __builtin_bswap32(x)
+#define cpu_to_be16(x) __bswap_constant_16((uint16_t) x)
+
+#define be64_to_cpu(x) __builtin_bswap64(x)
+#define be32_to_cpu(x) __builtin_bswap32(x)
+#define be16_to_cpu(x) __bswap_constant_16((uint16_t) x)
+
+#else /* __GNUC__ */
+
 #define cpu_to_be64(x) bswap_64(x)
 #define cpu_to_be32(x) bswap_32(x)
 #define cpu_to_be16(x) bswap_16(x)
@@ -105,7 +126,9 @@ void clock_gettime(int type, struct timespec *tv);
 #define be32_to_cpu(x) bswap_32(x)
 #define be16_to_cpu(x) bswap_16(x)
 
-#else
+#endif /* __GNUC__ */
+
+#else /* __BYTE_ORDER == __LITTLE_ENDIAN */
 
 #define cpu_to_be64(x) (x)
 #define cpu_to_be32(x) (x)
