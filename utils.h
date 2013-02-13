@@ -77,17 +77,14 @@ void clock_gettime(int type, struct timespec *tv);
 #elif defined(__APPLE__)
 #include <machine/endian.h>
 #include <machine/byte_order.h>
-#define bswap_16(x) OSSwapInt16(x)
 #define bswap_32(x) OSSwapInt32(x)
 #define bswap_64(x) OSSwapInt64(x)
 #elif defined(__FreeBSD__)
 #include <sys/endian.h>
-#define bswap_16(x) bswap16(x)
 #define bswap_32(x) bswap32(x)
 #define bswap_64(x) bswap64(x)
 #else
 #include <machine/endian.h>
-#define bswap_16(x) swap16(x)
 #define bswap_32(x) swap32(x)
 #define bswap_64(x) swap64(x)
 #endif
@@ -102,33 +99,43 @@ void clock_gettime(int type, struct timespec *tv);
 #define __LITTLE_ENDIAN LITTLE_ENDIAN
 #endif
 
-#if __BYTE_ORDER == __LITTLE_ENDIAN
+#define __u_bswap16(x) ((uint16_t)((((x) >> 8) & 0xffu) | (((x) & 0xffu) << 8)))
 
 #if _GNUC_MIN_VER(4, 2)
+#define __u_bswap32(x) __builtin_bswap32(x)
+#define __u_bswap64(x) __builtin_bswap64(x)
+#else
+#define __u_bswap32(x) bswap_32(x)
+#define __u_bswap64(x) bswap_64(x)
+#endif
 
-#define __bswap_constant_16(x) ((uint16_t)((((x) >> 8) & 0xffu) | (((x) & 0xffu) << 8)))
+#if __BYTE_ORDER == __LITTLE_ENDIAN
 
-#define cpu_to_be64(x) __builtin_bswap64(x)
-#define cpu_to_be32(x) __builtin_bswap32(x)
-#define cpu_to_be16(x) __bswap_constant_16((uint16_t) x)
+#define cpu_to_be64(x) __u_bswap64(x)
+#define cpu_to_be32(x) __u_bswap32(x)
+#define cpu_to_be16(x) __u_bswap16((uint16_t) x)
 
-#define be64_to_cpu(x) __builtin_bswap64(x)
-#define be32_to_cpu(x) __builtin_bswap32(x)
-#define be16_to_cpu(x) __bswap_constant_16((uint16_t) x)
+#define be64_to_cpu(x) __u_bswap64(x)
+#define be32_to_cpu(x) __u_bswap32(x)
+#define be16_to_cpu(x) __u_bswap16((uint16_t) x)
 
-#else /* __GNUC__ */
+#define cpu_to_le64(x) (x)
+#define cpu_to_le32(x) (x)
+#define cpu_to_le16(x) (x)
 
-#define cpu_to_be64(x) bswap_64(x)
-#define cpu_to_be32(x) bswap_32(x)
-#define cpu_to_be16(x) bswap_16(x)
-
-#define be64_to_cpu(x) bswap_64(x)
-#define be32_to_cpu(x) bswap_32(x)
-#define be16_to_cpu(x) bswap_16(x)
-
-#endif /* __GNUC__ */
+#define le64_to_cpu(x) (x)
+#define le32_to_cpu(x) (x)
+#define le16_to_cpu(x) (x)
 
 #else /* __BYTE_ORDER == __LITTLE_ENDIAN */
+
+#define cpu_to_le64(x) __u_bswap64(x)
+#define cpu_to_le32(x) __u_bswap32(x)
+#define cpu_to_le16(x) __u_bswap16((uint16_t) x)
+
+#define le64_to_cpu(x) __u_bswap64(x)
+#define le32_to_cpu(x) __u_bswap32(x)
+#define le16_to_cpu(x) __u_bswap16((uint16_t) x)
 
 #define cpu_to_be64(x) (x)
 #define cpu_to_be32(x) (x)
