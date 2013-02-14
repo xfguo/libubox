@@ -113,11 +113,11 @@ void clock_gettime(int type, struct timespec *tv);
 
 #define cpu_to_be64(x) __u_bswap64(x)
 #define cpu_to_be32(x) __u_bswap32(x)
-#define cpu_to_be16(x) __u_bswap16((uint16_t) x)
+#define cpu_to_be16(x) __u_bswap16((uint16_t) (x))
 
 #define be64_to_cpu(x) __u_bswap64(x)
 #define be32_to_cpu(x) __u_bswap32(x)
-#define be16_to_cpu(x) __u_bswap16((uint16_t) x)
+#define be16_to_cpu(x) __u_bswap16((uint16_t) (x))
 
 #define cpu_to_le64(x) (x)
 #define cpu_to_le32(x) (x)
@@ -131,11 +131,11 @@ void clock_gettime(int type, struct timespec *tv);
 
 #define cpu_to_le64(x) __u_bswap64(x)
 #define cpu_to_le32(x) __u_bswap32(x)
-#define cpu_to_le16(x) __u_bswap16((uint16_t) x)
+#define cpu_to_le16(x) __u_bswap16((uint16_t) (x))
 
 #define le64_to_cpu(x) __u_bswap64(x)
 #define le32_to_cpu(x) __u_bswap32(x)
-#define le16_to_cpu(x) __u_bswap16((uint16_t) x)
+#define le16_to_cpu(x) __u_bswap16((uint16_t) (x))
 
 #define cpu_to_be64(x) (x)
 #define cpu_to_be32(x) (x)
