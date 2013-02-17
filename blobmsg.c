@@ -216,6 +216,31 @@ blobmsg_open_nested(struct blob_buf *buf, const char *name, bool array)
 	return (void *)offset;
 }
 
+void
+blobmsg_vprintf(struct blob_buf *buf, const char *name, const char *format, va_list arg)
+{
+	va_list arg2;
+	char cbuf;
+	int len;
+
+	va_copy(arg2, arg);
+	len = vsnprintf(&cbuf, sizeof(cbuf), format, arg2);
+	va_end(arg2);
+
+	vsprintf(blobmsg_alloc_string_buffer(buf, name, len + 1), format, arg);
+	blobmsg_add_string_buffer(buf);
+}
+
+void
+blobmsg_printf(struct blob_buf *buf, const char *name, const char *format, ...)
+{
+	va_list ap;
+
+	va_start(ap, format);
+	blobmsg_vprintf(buf, name, format, ap);
+	va_end(ap);
+}
+
 void *
 blobmsg_alloc_string_buffer(struct blob_buf *buf, const char *name, int maxlen)
 {

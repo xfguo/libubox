@@ -16,6 +16,7 @@
 #ifndef __BLOBMSG_H
 #define __BLOBMSG_H
 
+#include <stdarg.h>
 #include "blob.h"
 
 #define BLOBMSG_ALIGN	2
@@ -194,6 +195,11 @@ static inline char *blobmsg_get_string(struct blob_attr *attr)
 void *blobmsg_alloc_string_buffer(struct blob_buf *buf, const char *name, int maxlen);
 void *blobmsg_realloc_string_buffer(struct blob_buf *buf, int maxlen);
 void blobmsg_add_string_buffer(struct blob_buf *buf);
+
+void blobmsg_vprintf(struct blob_buf *buf, const char *name, const char *format, va_list arg);
+void blobmsg_printf(struct blob_buf *buf, const char *name, const char *format, ...)
+     __attribute__((format(printf, 3, 4)));
+
 
 /* blobmsg to json formatting */
 
