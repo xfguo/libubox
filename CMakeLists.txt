@@ -43,7 +43,10 @@ IF(EXISTS ${json})
 	ADD_EXECUTABLE(jshn jshn.c)
 	TARGET_LINK_LIBRARIES(jshn ${json})
 
-	INSTALL(TARGETS blobmsg_json jshn
+	ADD_LIBRARY(json_script SHARED json_script.c)
+	TARGET_LINK_LIBRARIES(json_script ubox)
+
+	INSTALL(TARGETS blobmsg_json jshn json_script
 		LIBRARY DESTINATION lib
 		RUNTIME DESTINATION bin
 	)
