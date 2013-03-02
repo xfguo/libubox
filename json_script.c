@@ -16,8 +16,7 @@
 #include <sys/stat.h>
 #include <regex.h>
 
-#include <libubox/avl-cmp.h>
-
+#include "avl-cmp.h"
 #include "json_script.h"
 
 struct json_call {
