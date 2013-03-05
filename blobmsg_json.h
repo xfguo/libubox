@@ -16,7 +16,12 @@
 #ifndef __BLOBMSG_JSON_H
 #define __BLOBMSG_JSON_H
 
-#include <json/json.h>
+#ifdef JSONC
+	#include <json.h>
+#else
+	#include <json/json.h>
+#endif
+
 #include <stdbool.h>
 #include "blobmsg.h"
 
