@@ -30,7 +30,7 @@
 #include "utils.h"
 
 struct safe_list;
-struct safe_list_terator;
+struct safe_list_iterator;
 
 struct safe_list {
 	struct list_head list;
