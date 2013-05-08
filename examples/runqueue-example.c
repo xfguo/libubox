@@ -66,9 +66,9 @@ static void q_sleep_cancel(struct runqueue *q, struct runqueue_task *t, int type
 	runqueue_process_cancel_cb(q, t, type);
 }
 
-static void q_sleep_complete(struct runqueue *q, struct runqueue_process *p, int ret)
+static void q_sleep_complete(struct runqueue *q, struct runqueue_task *p)
 {
-	struct sleeper *s = container_of(p, struct sleeper, proc);
+	struct sleeper *s = container_of(p, struct sleeper, proc.task);
 
 	fprintf(stderr, "[%d/%d] finish 'sleep %d'\n", q->running_tasks, q->max_running_tasks, s->val);
 	free(s);
@@ -86,7 +86,7 @@ static void add_sleeper(int val)
 	s = calloc(1, sizeof(*s));
 	s->proc.task.type = &sleeper_type;
 	s->proc.task.run_timeout = 500;
-	s->proc.complete = q_sleep_complete;
+	s->proc.task.complete = q_sleep_complete;
 	s->val = val;
 	runqueue_task_add(&q, &s->proc.task, false);
 }

@@ -73,6 +73,8 @@ struct runqueue_task {
 	const struct runqueue_task_type *type;
 	struct runqueue *q;
 
+	void (*complete)(struct runqueue *q, struct runqueue_task *t);
+
 	struct uloop_timeout timeout;
 	int run_timeout;
 	int cancel_timeout;
@@ -86,7 +88,6 @@ struct runqueue_task {
 struct runqueue_process {
 	struct runqueue_task task;
 	struct uloop_process proc;
-	void (*complete)(struct runqueue *q, struct runqueue_process *p, int ret);
 };
 
 void runqueue_init(struct runqueue *q);

@@ -186,6 +186,8 @@ void runqueue_task_kill(struct runqueue_task *t)
 	runqueue_task_complete(t);
 	if (running && t->type->kill)
 		t->type->kill(q, t);
+	if (t->complete)
+		t->complete(q, t);
 
 	runqueue_start_next(q);
 }
@@ -220,11 +222,8 @@ static void
 __runqueue_proc_cb(struct uloop_process *p, int ret)
 {
 	struct runqueue_process *t = container_of(p, struct runqueue_process, proc);
-	struct runqueue *q = t->task.q;
 
 	runqueue_task_complete(&t->task);
-	if (t->complete)
-		t->complete(q, t, ret);
 }
 
 void runqueue_process_cancel_cb(struct runqueue *q, struct runqueue_task *t, int type)
@@ -243,7 +242,6 @@ void runqueue_process_kill_cb(struct runqueue *q, struct runqueue_task *t)
 
 	uloop_process_delete(&p->proc);
 	kill(p->proc.pid, SIGKILL);
-	__runqueue_proc_cb(&p->proc, -1);
 }
 
 static const struct runqueue_task_type runqueue_proc_type = {
