@@ -230,6 +230,7 @@ static int register_poll(struct uloop_fd *fd, unsigned int flags)
 
 	ev.data.fd = fd->fd;
 	ev.data.ptr = fd;
+	fd->flags = flags;
 
 	return epoll_ctl(poll_fd, op, fd->fd, &ev);
 }
@@ -238,6 +239,7 @@ static struct epoll_event events[ULOOP_MAX_EVENTS];
 
 static int __uloop_fd_delete(struct uloop_fd *sock)
 {
+	sock->flags = 0;
 	return epoll_ctl(poll_fd, EPOLL_CTL_DEL, sock->fd, 0);
 }
 
