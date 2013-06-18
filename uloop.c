@@ -181,6 +181,7 @@ static int uloop_fetch_events(int timeout)
 
 		if (u->flags & ULOOP_EDGE_DEFER) {
 			u->flags &= ~ULOOP_EDGE_DEFER;
+			u->flags |= ULOOP_EDGE_TRIGGER;
 			register_kevent(u, u->flags);
 		}
 	}

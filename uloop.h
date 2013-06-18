@@ -56,7 +56,7 @@ struct uloop_fd
 	bool error;
 	bool registered;
 #ifdef USE_KQUEUE
-	bool flags;
+	uint8_t flags;
 #endif
 };
 
