@@ -179,6 +179,7 @@ static int uloop_fetch_events(int timeout)
 		else if (!ev)
 			cur->fd = NULL;
 
+		cur->events = ev;
 		if (u->flags & ULOOP_EDGE_DEFER) {
 			u->flags &= ~ULOOP_EDGE_DEFER;
 			u->flags |= ULOOP_EDGE_TRIGGER;
