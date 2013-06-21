@@ -193,7 +193,7 @@ static void blobmsg_format_string(struct strbuf *s, const char *str)
 
 		if (escape == 'u') {
 			sprintf(buf + 4, "%02x", (unsigned char) *p);
-			len = 4;
+			len = 6;
 		} else {
 			len = 2;
 		}
