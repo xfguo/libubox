@@ -632,6 +632,7 @@ void uloop_run(void)
 
 		if (do_sigchld)
 			uloop_handle_processes();
+		uloop_gettime(&tv);
 		uloop_run_events(uloop_get_next_timeout(&tv));
 	}
 }
