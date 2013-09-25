@@ -135,6 +135,20 @@ blob_new(struct blob_buf *buf, int id, int payload)
 }
 
 struct blob_attr *
+blob_put_raw(struct blob_buf *buf, const void *ptr, int len)
+{
+	struct blob_attr *attr;
+
+	if (len < sizeof(struct blob_attr) || !ptr)
+		return NULL;
+
+	attr = blob_add(buf, blob_next(buf->head), 0, len - sizeof(struct blob_attr));
+	blob_set_raw_len(buf->head, blob_pad_len(buf->head) + len);
+	memcpy(attr, ptr, len);
+	return attr;
+}
+
+struct blob_attr *
 blob_put(struct blob_buf *buf, int id, const void *ptr, int len)
 {
 	struct blob_attr *attr;
