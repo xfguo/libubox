@@ -28,6 +28,8 @@
 
 #include "utils.h"
 
+#define BLOB_COOKIE		0x01234567
+
 enum {
 	BLOB_ATTR_UNSPEC,
 	BLOB_ATTR_NESTED,
