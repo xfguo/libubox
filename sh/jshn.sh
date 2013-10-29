@@ -12,6 +12,15 @@ _json_set_var() {
 	eval "${JSON_PREFIX}$___var=\"\$___val\""
 }
 
+__jshn_raw_append() {
+	local var="$1"
+	local value="$2"
+	local sep="${3:- }"
+
+	eval "export -- \"$var=\${$var:+\${$var}\${value:+\$sep}}\$value\""
+}
+
+
 _jshn_append() {
 	local __var="$1"
 	local __value="$2"
@@ -212,6 +221,22 @@ json_get_keys() {
 	json_get_var _tbl_cur "$2"
 	local __var="${JSON_PREFIX}KEYS_${_tbl_cur}"
 	eval "export -- \"$__dest=\${$__var}\"; [ -n \"\${$__var+x}\" ]"
+}
+
+json_get_values() {
+	local _v_dest="$1"
+	local _v_keys _v_val
+
+	unset "$_v_dest"
+	json_get_keys _v_keys "$2"
+	json_select "$2"
+	set -- $_v_keys
+	while [ "$#" -gt 0 ]; do
+		json_get_var _v_val "$1"
+		__jshn_raw_append "$_v_dest" "$_v_val"
+		shift
+	done
+	json_select ..
 }
 
 json_get_var() {
