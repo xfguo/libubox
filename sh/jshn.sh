@@ -218,25 +218,35 @@ json_get_keys() {
 	local __dest="$1"
 	local _tbl_cur
 
-	json_get_var _tbl_cur "$2"
+	if [ -n "$2" ]; then
+		json_get_var _tbl_cur "$2"
+	else
+		_json_get_var _tbl_cur JSON_CUR
+	fi
 	local __var="${JSON_PREFIX}KEYS_${_tbl_cur}"
 	eval "export -- \"$__dest=\${$__var}\"; [ -n \"\${$__var+x}\" ]"
 }
 
 json_get_values() {
 	local _v_dest="$1"
-	local _v_keys _v_val
+	local _v_keys _v_val _select=
 
 	unset "$_v_dest"
-	json_get_keys _v_keys "$2"
-	json_select "$2"
+	[ -n "$2" ] && {
+		json_select "$2"
+		_select=1
+	}
+
+	json_get_keys _v_keys
 	set -- $_v_keys
 	while [ "$#" -gt 0 ]; do
 		json_get_var _v_val "$1"
 		__jshn_raw_append "$_v_dest" "$_v_val"
 		shift
 	done
-	json_select ..
+	[ -n "$_select" ] && json_select ..
+
+	return 0
 }
 
 json_get_var() {
