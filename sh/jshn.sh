@@ -22,12 +22,9 @@ __jshn_raw_append() {
 
 _jshn_append() {
 	# var=$1
-	# value=$2
-	# sep=$3
-	local __old_val
-
-	_json_get_var __old_val "$1"
-	_json_set_var "$1" "${__old_val:+$__old_val${3:- }}$2"
+	local _a_value="$2"
+	local _a_sep="${3:- }"
+	eval "${JSON_PREFIX}$1=\"\${${JSON_PREFIX}$1:+\${${JSON_PREFIX}$1}\${_a_value:+\$_a_sep}}\$_a_value\""
 }
 
 _json_export() {
