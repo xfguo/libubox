@@ -68,15 +68,6 @@ _json_inc() {
 	[ -n "$_dest" ] && _set_var "$_dest" "$_seq"
 }
 
-_json_stack_push() {
-	local new_cur="$1"
-	local cur
-
-	_json_get_var cur JSON_CUR
-	_jshn_append JSON_STACK "$cur"
-	_json_set_var JSON_CUR "$new_cur"
-}
-
 _json_add_generic() {
 	local type="$1"
 	local var="$2"
@@ -110,10 +101,10 @@ _json_add_table() {
 	_json_inc JSON_SEQ seq
 
 	local table="JSON_$itype$seq"
-	_json_export "UP_$table" "$cur"
+	_json_set_var "UP_$table" "$cur"
 	_json_export "KEYS_$table" ""
 	[ "$itype" = "ARRAY" ] && _json_export "SEQ_$table" ""
-	_json_stack_push "$table"
+	_json_set_var JSON_CUR "$table"
 	_jshn_append "JSON_UNSET" "$table"
 
 	_json_get_var new_cur JSON_CUR
@@ -121,13 +112,11 @@ _json_add_table() {
 }
 
 _json_close_table() {
-	local stack new_stack
+	local _s_cur _s_new
 
-	_json_get_var stack JSON_STACK
-	_json_set_var JSON_CUR "${stack##* }"
-	new_stack="${stack% *}"
-	[[ "$stack" == "$new_stack" ]] && new_stack=
-	_json_set_var JSON_STACK "$new_stack"
+	_json_get_var _s_cur JSON_CUR
+	_json_get_var _s_new "UP_$_s_cur"
+	_json_set_var JSON_CUR "$_s_new"
 }
 
 json_set_namespace() {
@@ -154,7 +143,6 @@ json_cleanup() {
 
 	unset \
 		${JSON_PREFIX}JSON_SEQ \
-		${JSON_PREFIX}JSON_STACK \
 		${JSON_PREFIX}JSON_CUR \
 		${JSON_PREFIX}JSON_UNSET
 }
@@ -163,7 +151,6 @@ json_init() {
 	json_cleanup
 	export -- \
 		${JSON_PREFIX}JSON_SEQ=0 \
-		${JSON_PREFIX}JSON_STACK= \
 		${JSON_PREFIX}JSON_CUR="JSON_VAR" \
 		${JSON_PREFIX}JSON_UNSET="" \
 		${JSON_PREFIX}KEYS_JSON_VAR= \
