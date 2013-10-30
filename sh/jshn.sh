@@ -37,7 +37,6 @@ _json_export() {
 	local __val="$2"
 
 	export -- "$__var=$__val"
-	_jshn_append "JSON_UNSET" "$__var"
 }
 
 _json_add_key() {
@@ -96,6 +95,7 @@ _json_add_generic() {
 
 	_json_export "${cur}_$var" "$val"
 	_json_export "TYPE_${cur}_$var" "$type"
+	_jshn_append "JSON_UNSET" "${cur}_$var"
 	_json_add_key "$cur" "$var"
 }
 
@@ -114,6 +114,7 @@ _json_add_table() {
 	_json_export "KEYS_$table" ""
 	[ "$itype" = "ARRAY" ] && _json_export "SEQ_$table" ""
 	_json_stack_push "$table"
+	_jshn_append "JSON_UNSET" "$table"
 
 	_json_get_var new_cur JSON_CUR
 	_json_add_generic "$type" "$1" "$new_cur" "$cur"
@@ -141,15 +142,21 @@ json_cleanup() {
 	local unset
 
 	_json_get_var unset JSON_UNSET
-	[ -n "$unset" ] && eval "unset $unset"
+	for tmp in $unset JSON_VAR; do
+		unset \
+			${JSON_PREFIX}UP_$tmp \
+			${JSON_PREFIX}KEYS_$tmp \
+			${JSON_PREFIX}SEQ_$tmp \
+			${JSON_PREFIX}TYPE_$tmp \
+			${JSON_PREFIX}NAME_$tmp \
+			${JSON_PREFIX}$tmp
+	done
 
 	unset \
 		${JSON_PREFIX}JSON_SEQ \
 		${JSON_PREFIX}JSON_STACK \
 		${JSON_PREFIX}JSON_CUR \
-		${JSON_PREFIX}JSON_UNSET \
-		${JSON_PREFIX}KEYS_JSON_VAR \
-		${JSON_PREFIX}TYPE_JSON_VAR
+		${JSON_PREFIX}JSON_UNSET
 }
 
 json_init() {
