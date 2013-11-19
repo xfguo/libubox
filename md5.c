@@ -12,7 +12,7 @@
  *  Licensed under the GPL v2 or later, see the file LICENSE in this tarball.
  */
 
-#include <libubox/blob.h> /* TODO: better include for bswap_32 compat */
+#include "blob.h" /* TODO: better include for bswap_32 compat */
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -255,7 +255,7 @@ int md5sum(char *file, uint32_t *md5)
 	int len, fd;
 	int ret = 0;
 
-	memset(md5, 0, sizeof(md5));
+	memset(md5, 0, sizeof(*md5) * 4);
 
 	fd = open(file, O_RDONLY);
 	if (fd < 0)
