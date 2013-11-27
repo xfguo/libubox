@@ -129,14 +129,11 @@ static bool blobmsg_puts(struct strbuf *s, const char *c, int len)
 static void add_separator(struct strbuf *s)
 {
 	static char indent_chars[17] = "\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t";
-	static const char indent_space = ' ';
 	int indent;
 	char *start;
 
-	if (!s->indent) {
-		blobmsg_puts(s, &indent_space, 1);
+	if (!s->indent)
 		return;
-	}
 
 	indent = s->indent_level;
 	if (indent > 16)
@@ -219,7 +216,7 @@ static void blobmsg_format_element(struct strbuf *s, struct blob_attr *attr, boo
 
 	if (!array && blobmsg_name(attr)[0]) {
 		blobmsg_format_string(s, blobmsg_name(attr));
-		blobmsg_puts(s, ": ", 2);
+		blobmsg_puts(s, ": ", s->indent ? 2 : 1);
 	}
 	if (head) {
 		data = blob_data(attr);
