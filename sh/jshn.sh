@@ -23,20 +23,7 @@ __jshn_raw_append() {
 _jshn_append() {
 	# var=$1
 	local _a_value="$2"
-	local _a_sep="${3:- }"
-	eval "${JSON_PREFIX}$1=\"\${${JSON_PREFIX}$1:+\${${JSON_PREFIX}$1}\${_a_value:+\$_a_sep}}\$_a_value\""
-}
-
-_json_export() {
-	# var=$1
-	# value=$2
-	export -- "${JSON_PREFIX}$1=$2"
-}
-
-_json_add_key() {
-	# var=$1
-	# value=$2
-	_jshn_append "KEYS_$1" "$2"
+	eval "${JSON_PREFIX}$1=\"\${${JSON_PREFIX}$1} \$_a_value\""
 }
 
 _get_var() {
@@ -54,63 +41,57 @@ _set_var() {
 _json_inc() {
 	# var=$1
 	# dest=$2
-	local _seq
 
-	_json_get_var _seq "$1"
-	_seq="$((${_seq:-0} + 1))"
-	_json_set_var "$1" "$_seq"
-	[ -n "$2" ] && _set_var "$2" "$_seq"
+	eval "${JSON_PREFIX}$1=\$(( \${${JSON_PREFIX}$1:-0} + 1))${2:+; $2=\"\$${JSON_PREFIX}$1\"}"
 }
 
 _json_add_generic() {
 	# type=$1
-	local var="$2"
+	# name=$2
 	# value=$3
-	local cur="$4"
+	# cur=$4
 
-	[ -n "$cur" ] || _json_get_var cur JSON_CUR
-
-	if [ "${cur%%[0-9]*}" = "JSON_ARRAY" ]; then
-		_json_inc "SEQ_$cur" var
+	local var
+	if [ "${4%%[0-9]*}" = "JSON_ARRAY" ]; then
+		_json_inc "SEQ_$4" var
 	else
-		local name="${var//[^a-zA-Z0-9_]/_}"
-		[[ "$name" == "$var" ]] || _json_export "NAME_${cur}_${name}" "$var"
+		local name="${2//[^a-zA-Z0-9_]/_}"
+		[[ "$name" == "$2" ]] || export -- "${JSON_PREFIX}NAME_${4}_${name}=$2"
 		var="$name"
 	fi
 
 	local cur_var=
-	_json_export "${cur}_$var" "$3"
-	_json_export "TYPE_${cur}_$var" "$1"
-	_jshn_append "JSON_UNSET" "${cur}_$var"
-	_json_add_key "$cur" "$var"
+	export -- \
+		"${JSON_PREFIX}${4}_$var=$3" \
+		"${JSON_PREFIX}TYPE_${4}_$var=$1"
+	_jshn_append "JSON_UNSET" "${4}_$var"
+	_jshn_append "KEYS_$4" "$var"
 }
 
 _json_add_table() {
 	# name=$1
 	# type=$2
 	# itype=$3
-	local cur new_cur seq
+	local cur seq
 
 	_json_get_var cur JSON_CUR
 	_json_inc JSON_SEQ seq
 
 	local table="JSON_$3$seq"
 	_json_set_var "UP_$table" "$cur"
-	_json_export "KEYS_$table" ""
-	[ "$itype" = "ARRAY" ] && _json_set_var "SEQ_$table" ""
+	export -- "${JSON_PREFIX}KEYS_$table="
+	unset "${JSON_PREFIX}SEQ_$table"
 	_json_set_var JSON_CUR "$table"
 	_jshn_append "JSON_UNSET" "$table"
 
-	_json_get_var new_cur JSON_CUR
-	_json_add_generic "$2" "$1" "$new_cur" "$cur"
+	_json_add_generic "$2" "$1" "$table" "$cur"
 }
 
 _json_close_table() {
-	local _s_cur _s_new
+	local _s_cur
 
 	_json_get_var _s_cur JSON_CUR
-	_json_get_var _s_new "UP_$_s_cur"
-	_json_set_var JSON_CUR "$_s_new"
+	_json_get_var "${JSON_PREFIX}JSON_CUR" "UP_$_s_cur"
 }
 
 json_set_namespace() {
@@ -167,19 +148,27 @@ json_close_array() {
 }
 
 json_add_string() {
-	_json_add_generic string "$1" "$2"
+	local cur
+	_json_get_var cur JSON_CUR
+	_json_add_generic string "$1" "$2" "$cur"
 }
 
 json_add_int() {
-	_json_add_generic int "$1" "$2"
+	local cur
+	_json_get_var cur JSON_CUR
+	_json_add_generic int "$1" "$2" "$cur"
 }
 
 json_add_boolean() {
-	_json_add_generic boolean "$1" "$2"
+	local cur
+	_json_get_var cur JSON_CUR
+	_json_add_generic boolean "$1" "$2" "$cur"
 }
 
 json_add_double() {
-	_json_add_generic double "$1" "$2"
+	local cur
+	_json_get_var cur JSON_CUR
+	_json_add_generic double "$1" "$2" "$cur"
 }
 
 # functions read access to json variables
