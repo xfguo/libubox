@@ -209,7 +209,7 @@ json_get_values() {
 
 	unset "$_v_dest"
 	[ -n "$2" ] && {
-		json_select "$2"
+		json_select "$2" || return 1
 		_select=1
 	}
 
