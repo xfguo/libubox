@@ -231,13 +231,17 @@ json_get_var() {
 
 	_json_get_var __cur JSON_CUR
 	local __var="${JSON_PREFIX}${__cur}_${2//[^a-zA-Z0-9_]/_}"
-	eval "export -- \"$__dest=\${$__var}\"; [ -n \"\${$__var+x}\" ]"
+	eval "export -- \"$__dest=\${$__var:-$3}\"; [ -n \"\${$__var+x}\${3+x}\" ]"
 }
 
 json_get_vars() {
 	while [ "$#" -gt 0 ]; do
 		local _var="$1"; shift
-		json_get_var "$_var" "$_var"
+		if [ "$_var" != "${_var#*:}" ]; then
+			json_get_var "${_var%%:*}" "${_var%%:*}" "${_var#*:}"
+		else
+			json_get_var "$_var" "$_var"
+		fi
 	done
 }
 
