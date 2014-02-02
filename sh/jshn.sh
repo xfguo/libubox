@@ -206,6 +206,7 @@ json_get_keys() {
 json_get_values() {
 	local _v_dest="$1"
 	local _v_keys _v_val _select=
+	local _json_no_warning=1
 
 	unset "$_v_dest"
 	[ -n "$2" ] && {
@@ -267,7 +268,8 @@ json_select() {
 			_json_set_var JSON_CUR "$cur"
 		;;
 		*)
-			echo "WARNING: Variable '$target' does not exist or is not an array/object"
+			[ -n "$_json_no_warning" ] || \
+				echo "WARNING: Variable '$target' does not exist or is not an array/object"
 			return 1
 		;;
 	esac
