@@ -174,7 +174,8 @@ static int uloop_fetch_events(int timeout)
 
 		if (events[n].flags & EV_ERROR) {
 			u->error = true;
-			uloop_fd_delete(u);
+			if (!(u->flags & ULOOP_ERROR_CB))
+				uloop_fd_delete(u);
 		}
 
 		if(events[n].filter == EVFILT_READ)
@@ -268,7 +269,8 @@ static int uloop_fetch_events(int timeout)
 
 		if (events[n].events & (EPOLLERR|EPOLLHUP)) {
 			u->error = true;
-			uloop_fd_delete(u);
+			if (!(u->flags & ULOOP_ERROR_CB))
+				uloop_fd_delete(u);
 		}
 
 		if(!(events[n].events & (EPOLLRDHUP|EPOLLIN|EPOLLOUT|EPOLLERR|EPOLLHUP))) {
