@@ -115,10 +115,9 @@ blob_fill_pad(struct blob_attr *attr)
 void
 blob_set_raw_len(struct blob_attr *attr, unsigned int len)
 {
-	int id = blob_id(attr);
 	len &= BLOB_ATTR_LEN_MASK;
-	len |= (id << BLOB_ATTR_ID_SHIFT) & BLOB_ATTR_ID_MASK;
-	attr->id_len = cpu_to_be32(len);
+	attr->id_len &= ~cpu_to_be32(BLOB_ATTR_LEN_MASK);
+	attr->id_len |= cpu_to_be32(len);
 }
 
 struct blob_attr *

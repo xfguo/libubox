@@ -181,6 +181,7 @@ blobmsg_new(struct blob_buf *buf, int type, const char *name, int payload_len, v
 	if (!attr)
 		return NULL;
 
+	attr->id_len |= be32_to_cpu(BLOB_ATTR_EXTENDED);
 	hdr = blob_data(attr);
 	hdr->namelen = cpu_to_be16(namelen);
 	strcpy((char *) hdr->name, (const char *)name);

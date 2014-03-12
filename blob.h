@@ -42,10 +42,11 @@ enum {
 	BLOB_ATTR_LAST
 };
 
-#define BLOB_ATTR_ID_MASK  0xff000000
+#define BLOB_ATTR_ID_MASK  0x7f000000
 #define BLOB_ATTR_ID_SHIFT 24
 #define BLOB_ATTR_LEN_MASK 0x00ffffff
 #define BLOB_ATTR_ALIGN    4
+#define BLOB_ATTR_EXTENDED 0x80000000
 
 struct blob_attr {
 	uint32_t id_len;
@@ -83,6 +84,12 @@ blob_id(const struct blob_attr *attr)
 {
 	int id = (be32_to_cpu(attr->id_len) & BLOB_ATTR_ID_MASK) >> BLOB_ATTR_ID_SHIFT;
 	return id;
+}
+
+static inline bool
+blob_is_extended(const struct blob_attr *attr)
+{
+	return !!(attr->id_len & cpu_to_be32(BLOB_ATTR_EXTENDED));
 }
 
 /*
