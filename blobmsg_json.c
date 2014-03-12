@@ -218,18 +218,14 @@ static void blobmsg_format_element(struct strbuf *s, struct blob_attr *attr, boo
 		blobmsg_format_string(s, blobmsg_name(attr));
 		blobmsg_puts(s, ": ", s->indent ? 2 : 1);
 	}
-	if (head) {
-		data = blob_data(attr);
-		len = blob_len(attr);
-	} else {
-		data = blobmsg_data(attr);
-		len = blobmsg_data_len(attr);
 
-		if (s->custom_format) {
-			data_str = s->custom_format(s->priv, attr);
-			if (data_str)
-				goto out;
-		}
+	data = blobmsg_data(attr);
+	len = blobmsg_data_len(attr);
+
+	if (!head && s->custom_format) {
+		data_str = s->custom_format(s->priv, attr);
+		if (data_str)
+			goto out;
 	}
 
 	data_str = buf;
@@ -304,7 +300,7 @@ char *blobmsg_format_json_with_cb(struct blob_attr *attr, bool list, blobmsg_jso
 	}
 
 	if (list)
-		blobmsg_format_json_list(&s, blob_data(attr), blob_len(attr), false);
+		blobmsg_format_json_list(&s, blobmsg_data(attr), blobmsg_data_len(attr), false);
 	else
 		blobmsg_format_element(&s, attr, false, false);
 
