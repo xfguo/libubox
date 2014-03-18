@@ -155,6 +155,14 @@ static inline uint16_t __u_bswap16(uint16_t val)
 #define __packed __attribute__((packed))
 #endif
 
+#ifndef __constructor
+#define __constructor __attribute__((constructor))
+#endif
+
+#ifndef __hidden
+#define __hidden __attribute__((visibility("hidden")))
+#endif
+
 #ifndef BITS_PER_LONG
 #define BITS_PER_LONG (8 * sizeof(unsigned long))
 #endif
