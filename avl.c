@@ -98,6 +98,11 @@ avl_init(struct avl_tree *tree, avl_tree_comp comp, bool allow_dups, void *ptr)
   tree->cmp_ptr = ptr;
 }
 
+static inline struct avl_node *avl_next(struct avl_node *node)
+{
+    return list_entry(node->list.next, struct avl_node, list);
+}
+
 /**
  * Finds a node in an avl-tree with a certain key
  * @param tree pointer to avl-tree
@@ -236,7 +241,7 @@ avl_insert(struct avl_tree *tree, struct avl_node *new)
   last = node;
 
   while (!list_is_last(&last->list, &tree->list_head)) {
-    next = list_next_element(last, list);
+    next = avl_next(last);
     if (next->leader) {
       break;
     }
@@ -307,7 +312,7 @@ avl_delete(struct avl_tree *tree, struct avl_node *node)
   if (node->leader) {
     if (tree->allow_dups
         && !list_is_last(&node->list, &tree->list_head)
-        && !(next = list_next_element(node, list))->leader) {
+        && !(next = avl_next(node))->leader) {
       next->leader = true;
       next->balance = node->balance;
 
