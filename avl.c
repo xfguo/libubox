@@ -491,7 +491,7 @@ avl_insert_before(struct avl_tree *tree, struct avl_node *pos_node, struct avl_n
 static void
 avl_insert_after(struct avl_tree *tree, struct avl_node *pos_node, struct avl_node *node)
 {
-  list_add_after(&pos_node->list, &node->list);
+  list_add(&node->list, &pos_node->list);
   tree->count++;
 }
 
