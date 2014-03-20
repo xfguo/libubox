@@ -17,7 +17,6 @@
 #ifndef __LIST_COMPAT_H
 #define __LIST_COMPAT_H
 
-#define list_remove(_list)			list_del(_list)
 #define list_is_empty(_list)			list_empty(_list)
 #define list_next_element(_element, _member)	list_entry((_element)->_member.next, typeof(*(_element)), _member)
 

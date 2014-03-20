@@ -498,7 +498,7 @@ avl_insert_after(struct avl_tree *tree, struct avl_node *pos_node, struct avl_no
 static void
 avl_remove(struct avl_tree *tree, struct avl_node *node)
 {
-  list_remove(&node->list);
+  list_del(&node->list);
   tree->count--;
 }
 
