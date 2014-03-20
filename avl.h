@@ -62,7 +62,7 @@ struct avl_node {
    * this must be the first element of an avl_node to
    * make casting for lists easier
    */
-  struct list_entity list;
+  struct list_head list;
 
   /**
    * Pointer to parent node in tree, NULL if root node
@@ -113,7 +113,7 @@ struct avl_tree {
    * Head of linked list node for supporting easy iteration
    * and multiple elments with the same key.
    */
-  struct list_entity list_head;
+  struct list_head list_head;
 
   /**
    * pointer to the root node of the avl tree, NULL if tree is empty
