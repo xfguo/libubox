@@ -47,10 +47,6 @@
 #include "avl.h"
 #include "list.h"
 
-#define list_merge(_head, _list) list_merge(_list, _head)
-#define list_is_last(_head, _list) list_is_last(_list, _head)
-#define list_is_first(_head, _list) list_is_first(_list, _head)
-
 /**
  * internal type save inline function to calculate the maximum of
  * to integers without macro implementation.
@@ -143,7 +139,7 @@ avl_find_lessequal(const struct avl_tree *tree, const void *key) {
 
   /* go left as long as key<node.key */
   while (diff < 0) {
-    if (list_is_first(&tree->list_head, &node->list)) {
+    if (list_is_first(&node->list, &tree->list_head)) {
       return NULL;
     }
 
@@ -155,7 +151,7 @@ avl_find_lessequal(const struct avl_tree *tree, const void *key) {
   next = node;
   while (diff >= 0) {
     node = next;
-    if (list_is_last(&tree->list_head, &node->list)) {
+    if (list_is_last(&node->list, &tree->list_head)) {
       break;
     }
 
@@ -185,7 +181,7 @@ avl_find_greaterequal(const struct avl_tree *tree, const void *key) {
 
   /* go right as long as key>node.key */
   while (diff > 0) {
-    if (list_is_last(&tree->list_head, &node->list)) {
+    if (list_is_last(&node->list, &tree->list_head)) {
       return NULL;
     }
 
@@ -197,7 +193,7 @@ avl_find_greaterequal(const struct avl_tree *tree, const void *key) {
   next = node;
   while (diff <= 0) {
     node = next;
-    if (list_is_first(&tree->list_head, &node->list)) {
+    if (list_is_first(&node->list, &tree->list_head)) {
       break;
     }
 
@@ -239,7 +235,7 @@ avl_insert(struct avl_tree *tree, struct avl_node *new)
 
   last = node;
 
-  while (!list_is_last(&tree->list_head, &last->list)) {
+  while (!list_is_last(&last->list, &tree->list_head)) {
     next = list_next_element(last, list);
     if (next->leader) {
       break;
@@ -310,7 +306,7 @@ avl_delete(struct avl_tree *tree, struct avl_node *node)
   struct avl_node *right;
   if (node->leader) {
     if (tree->allow_dups
-        && !list_is_last(&tree->list_head, &node->list)
+        && !list_is_last(&node->list, &tree->list_head)
         && !(next = list_next_element(node, list))->leader) {
       next->leader = true;
       next->balance = node->balance;
