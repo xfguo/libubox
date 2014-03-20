@@ -225,7 +225,7 @@ avl_insert(struct avl_tree *tree, struct avl_node *new)
   new->leader = true;
 
   if (tree->root == NULL) {
-    list_add_head(&tree->list_head, &new->list);
+    list_add(&new->list, &tree->list_head);
     tree->root = new;
     tree->count = 1;
     return 0;
