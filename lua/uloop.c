@@ -43,6 +43,7 @@ static void ul_timer_cb(struct uloop_timeout *t)
 
 	lua_getglobal(state, "__uloop_cb");
 	lua_rawgeti(state, -1, tout->r);
+	lua_remove(state, -2);
 	lua_call(state, 0, 0);
 }
 
@@ -133,6 +134,7 @@ static void ul_process_cb(struct uloop_process *p, int ret)
 	lua_getglobal(state, "__uloop_cb");
 	lua_rawgeti(state, -1, proc->r);
 	luaL_unref(state, -2, proc->r);
+	lua_remove(state, -2);
 	lua_pushinteger(state, ret >> 8);
 	lua_call(state, 1, 0);
 }
