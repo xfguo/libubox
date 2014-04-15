@@ -1,7 +1,13 @@
 #!/usr/bin/env lua
 
+local socket = require "socket"
+
 local uloop = require("uloop")
 uloop.init()
+
+local udp = socket.udp()
+udp:settimeout(0)
+udp:setsockname('*', 8080)
 
 -- timer example 1
 local timer
@@ -38,6 +44,23 @@ uloop.timer(
 	function()
 		uloop.process("uloop_pid_test.sh", {"foo", "bar"}, {"PROCESS=2"}, p2)
 	end, 2000
+)
+
+uloop.fd_add(udp, function(ufd, events)
+	local words, msg_or_ip, port_or_nil = ufd:receivefrom()
+	print('Recv UDP packet from '..msg_or_ip..':'..port_or_nil..' : '..words)
+end, uloop.ULOOP_READ)
+
+udp_send_timer = uloop.timer(
+	function()
+		local s = socket.udp()
+		local words = 'Hello!'
+		print('Send UDP packet to 127.0.0.1:8080 :'..words)
+		s:sendto(words, '127.0.0.1', 8080)
+		s:close()
+
+		udp_send_timer:set(1000)
+	end, 3000
 )
 
 uloop.run()

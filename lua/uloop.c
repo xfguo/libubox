@@ -25,6 +25,12 @@
 #include "../uloop.h"
 #include "../list.h"
 
+struct lua_uloop_fd {
+	struct uloop_fd fd;
+	int r;
+	int fd_r;
+};
+
 struct lua_uloop_timeout {
 	struct uloop_timeout t;
 	int r;
@@ -44,7 +50,9 @@ static void ul_timer_cb(struct uloop_timeout *t)
 	lua_getglobal(state, "__uloop_cb");
 	lua_rawgeti(state, -1, tout->r);
 	lua_remove(state, -2);
+
 	lua_call(state, 0, 0);
+
 }
 
 static int ul_timer_set(lua_State *L)
@@ -127,12 +135,95 @@ static int ul_timer(lua_State *L)
 	return 1;
 }
 
+static void ul_ufd_cb(struct uloop_fd *fd, unsigned int events)
+{
+	struct lua_uloop_fd *ufd = container_of(fd, struct lua_uloop_fd, fd);
+
+	lua_getglobal(state, "__uloop_cb");
+	lua_rawgeti(state, -1, ufd->r);
+	lua_remove(state, -2);
+
+	/* push fd object */
+	lua_getglobal(state, "__uloop_fds");
+	lua_rawgeti(state, -1, ufd->fd_r);
+	lua_remove(state, -2);
+
+	/* push events */
+	lua_pushinteger(state, events);
+
+	lua_call(state, 2, 0);
+}
+
+
+static int get_sock_fd(lua_State* L, int idx) {
+	int fd;
+	if(lua_isnumber(L, idx)) {
+		fd = lua_tonumber(L, idx);
+	} else {
+		luaL_checktype(L, idx, LUA_TUSERDATA);
+		lua_getfield(L, idx, "getfd");
+		if(lua_isnil(L, -1))
+			return luaL_error(L, "socket type missing 'getfd' method");
+		lua_pushvalue(L, idx - 1);
+		lua_call(L, 1, 1);
+		fd = lua_tointeger(L, -1);
+		lua_pop(L, 1);
+	}
+	return fd;
+}
+
+static int ul_ufd_add(lua_State *L)
+{
+	struct lua_uloop_fd *ufd;
+	int fd = 0;
+	unsigned int flags = 0;
+	int ref;
+	int fd_ref;
+
+	if (lua_isnumber(L, -1)) {
+		flags = lua_tointeger(L, -1);
+		lua_pop(L, 1);
+	}
+
+	if (!lua_isfunction(L, -1)) {
+		lua_pushstring(L, "invalid arg list");
+		lua_error(L);
+
+		return 0;
+	}
+
+	fd = get_sock_fd(L, -2);
+
+	lua_getglobal(L, "__uloop_cb");
+	lua_pushvalue(L, -2);
+	ref = luaL_ref(L, -2);
+	lua_pop(L, 1);
+
+	lua_getglobal(L, "__uloop_fds");
+	lua_pushvalue(L, -3);
+	fd_ref = luaL_ref(L, -2);
+	lua_pop(L, 1);
+
+	ufd = lua_newuserdata(L, sizeof(*ufd));
+	memset(ufd, 0, sizeof(*ufd));
+
+	ufd->r = ref;
+	ufd->fd.fd = fd;
+	ufd->fd_r = fd_ref;
+	ufd->fd.cb = ul_ufd_cb;
+	if (flags)
+		uloop_fd_add(&ufd->fd, flags);
+
+	return 1;
+}
+
 static void ul_process_cb(struct uloop_process *p, int ret)
 {
 	struct lua_uloop_process *proc = container_of(p, struct lua_uloop_process, p);
 
 	lua_getglobal(state, "__uloop_cb");
 	lua_rawgeti(state, -1, proc->r);
+
 	luaL_unref(state, -2, proc->r);
 	lua_remove(state, -2);
 	lua_pushinteger(state, ret >> 8);
@@ -225,6 +316,7 @@ static luaL_reg uloop_func[] = {
 	{"run", ul_run},
 	{"timer", ul_timer},
 	{"process", ul_process},
+	{"fd_add", ul_ufd_add},
 	{NULL, NULL},
 };
 
@@ -239,9 +331,28 @@ int luaopen_uloop(lua_State *L)
 	lua_createtable(L, 1, 0);
 	lua_setglobal(L, "__uloop_cb");
 
+	lua_createtable(L, 1, 0);
+	lua_setglobal(L, "__uloop_fds");
+
 	luaL_openlib(L, "uloop", uloop_func, 0);
 	lua_pushstring(L, "_VERSION");
 	lua_pushstring(L, "1.0");
+	lua_rawset(L, -3);
+
+	lua_pushstring(L, "ULOOP_READ");
+	lua_pushinteger(L, ULOOP_READ);
+	lua_rawset(L, -3);
+
+	lua_pushstring(L, "ULOOP_WRITE");
+	lua_pushinteger(L, ULOOP_WRITE);
+	lua_rawset(L, -3);
+
+	lua_pushstring(L, "ULOOP_EDGE_TRIGGER");
+	lua_pushinteger(L, ULOOP_EDGE_TRIGGER);
+	lua_rawset(L, -3);
+
+	lua_pushstring(L, "ULOOP_BLOCKING");
+	lua_pushinteger(L, ULOOP_BLOCKING);
 	lua_rawset(L, -3);
 
 	return 1;
