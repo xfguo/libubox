@@ -80,7 +80,7 @@ static int ul_timer_free(lua_State *L)
 
 	uloop_timeout_cancel(&tout->t);
 	lua_getglobal(state, "__uloop_cb");
-	luaL_unref(L, -1, tout->r);
+	luaL_unref(state, -1, tout->r);
 
 	return 1;
 }
@@ -177,16 +177,20 @@ static int ul_ufd_delete(lua_State *L)
 	struct lua_uloop_fd *ufd = lua_touserdata(L, 1);
 
 	uloop_fd_delete(&ufd->fd);
+
 	lua_getglobal(state, "__uloop_cb");
-	luaL_unref(L, -1, ufd->r);
+	luaL_unref(state, -1, ufd->r);
+	lua_remove(state, -1);
+
 	lua_getglobal(state, "__uloop_fds");
-	luaL_unref(L, -1, ufd->fd_r);
+	luaL_unref(state, -1, ufd->fd_r);
+	lua_remove(state, -1);
 
 	return 1;
 }
 
 static const luaL_Reg ufd_m[] = {
-	{ "delete", ul_ufd_delete },
+	{ "cancel", ul_ufd_delete },
 	{ NULL, NULL }
 };
 

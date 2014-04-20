@@ -50,7 +50,7 @@ udp_ev = uloop.fd_add(udp, function(ufd, events)
 	local words, msg_or_ip, port_or_nil = ufd:receivefrom()
 	print('Recv UDP packet from '..msg_or_ip..':'..port_or_nil..' : '..words)
 	if words == "Stop!" then
-		udp_ev:delete()
+		udp_ev:cancel()
 	end
 end, uloop.ULOOP_READ)
 
