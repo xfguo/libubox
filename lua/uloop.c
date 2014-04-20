@@ -172,6 +172,24 @@ static int get_sock_fd(lua_State* L, int idx) {
 	return fd;
 }
 
+static int ul_ufd_delete(lua_State *L)
+{
+	struct lua_uloop_fd *ufd = lua_touserdata(L, 1);
+
+	uloop_fd_delete(&ufd->fd);
+	lua_getglobal(state, "__uloop_cb");
+	luaL_unref(L, -1, ufd->r);
+	lua_getglobal(state, "__uloop_fds");
+	luaL_unref(L, -1, ufd->fd_r);
+
+	return 1;
+}
+
+static const luaL_Reg ufd_m[] = {
+	{ "delete", ul_ufd_delete },
+	{ NULL, NULL }
+};
+
 static int ul_ufd_add(lua_State *L)
 {
 	struct lua_uloop_fd *ufd;
@@ -205,6 +223,18 @@ static int ul_ufd_add(lua_State *L)
 	lua_pop(L, 1);
 
 	ufd = lua_newuserdata(L, sizeof(*ufd));
+
+	lua_createtable(L, 0, 2);
+	lua_pushvalue(L, -1);
+	lua_setfield(L, -2, "__index");
+	lua_pushcfunction(L, ul_ufd_delete);
+	lua_setfield(L, -2, "__gc");
+	lua_pushvalue(L, -1);
+	lua_setmetatable(L, -3);
+	lua_pushvalue(L, -2);
+	luaI_openlib(L, NULL, ufd_m, 1);
+	lua_pushvalue(L, -2);
+
 	memset(ufd, 0, sizeof(*ufd));
 
 	ufd->r = ref;

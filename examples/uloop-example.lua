@@ -46,20 +46,31 @@ uloop.timer(
 	end, 2000
 )
 
-uloop.fd_add(udp, function(ufd, events)
+udp_ev = uloop.fd_add(udp, function(ufd, events)
 	local words, msg_or_ip, port_or_nil = ufd:receivefrom()
 	print('Recv UDP packet from '..msg_or_ip..':'..port_or_nil..' : '..words)
+	if words == "Stop!" then
+		udp_ev:delete()
+	end
 end, uloop.ULOOP_READ)
 
+udp_count = 0
 udp_send_timer = uloop.timer(
 	function()
 		local s = socket.udp()
-		local words = 'Hello!'
+		local words
+		if udp_count > 3 then
+			words = "Stop!"
+			udp_send_timer:cancel()
+		else
+			words = 'Hello!'
+			udp_send_timer:set(1000)
+		end
 		print('Send UDP packet to 127.0.0.1:8080 :'..words)
 		s:sendto(words, '127.0.0.1', 8080)
 		s:close()
 
-		udp_send_timer:set(1000)
+		udp_count = udp_count + 1
 	end, 3000
 )
 
