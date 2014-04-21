@@ -77,8 +77,15 @@ static int ul_timer_set(lua_State *L)
 static int ul_timer_free(lua_State *L)
 {
 	struct lua_uloop_timeout *tout = lua_touserdata(L, 1);
-
+	
 	uloop_timeout_cancel(&tout->t);
+	
+	/* obj.__index.__gc = nil , make sure executing only once*/
+	lua_getfield(L, -1, "__index");
+	lua_pushstring(L, "__gc");
+	lua_pushnil(L);
+	lua_settable(L, -3);
+
 	lua_getglobal(state, "__uloop_cb");
 	luaL_unref(state, -1, tout->r);
 
@@ -150,7 +157,6 @@ static void ul_ufd_cb(struct uloop_fd *fd, unsigned int events)
 
 	/* push events */
 	lua_pushinteger(state, events);
-
 	lua_call(state, 2, 0);
 }
 
@@ -175,8 +181,14 @@ static int get_sock_fd(lua_State* L, int idx) {
 static int ul_ufd_delete(lua_State *L)
 {
 	struct lua_uloop_fd *ufd = lua_touserdata(L, 1);
-
+	
 	uloop_fd_delete(&ufd->fd);
+
+	/* obj.__index.__gc = nil , make sure executing only once*/
+	lua_getfield(L, -1, "__index");
+	lua_pushstring(L, "__gc");
+	lua_pushnil(L);
+	lua_settable(L, -3);
 
 	lua_getglobal(state, "__uloop_cb");
 	luaL_unref(state, -1, ufd->r);
@@ -345,12 +357,19 @@ static int ul_run(lua_State *L)
 	return 1;
 }
 
+static int ul_cancel(lua_State *L)
+{
+	uloop_end();
+	return 1;
+}
+
 static luaL_reg uloop_func[] = {
 	{"init", ul_init},
 	{"run", ul_run},
 	{"timer", ul_timer},
 	{"process", ul_process},
 	{"fd_add", ul_ufd_add},
+	{"cancel", ul_cancel},
 	{NULL, NULL},
 };
 
