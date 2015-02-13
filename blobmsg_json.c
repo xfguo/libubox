@@ -15,6 +15,7 @@
  */
 #include "blobmsg.h"
 #include "blobmsg_json.h"
+#include <json/bits.h> //Or reference to is_error at __blobmsg_add_json() will give problems
 
 bool blobmsg_add_object(struct blob_buf *b, json_object *obj)
 {
