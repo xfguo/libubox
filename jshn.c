@@ -19,6 +19,7 @@
         #include <json/json.h>
 #endif
 
+#include <json/bits.h> // or reference to is_error() at jshn_parse() will give problems
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
